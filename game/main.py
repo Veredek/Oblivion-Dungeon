@@ -35,7 +35,7 @@ from src.menu import menu
         
 def main():
     #WIN.blit(BG, (0, 0))
-    run = True
+    running = True
 
     #clock = pygame.time.Clock()
 
@@ -46,13 +46,12 @@ def main():
     if choice != "":
         pass
 
-    while run:
+    while running:
         #clock.tick(60)
-        print("ok")
         for event in pygame.event.get():
             print(event.type)
             if event.type == pygame.QUIT:
-                run = False
+                running = False
                 break
 
             # Posição do mouse e Highlight

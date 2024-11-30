@@ -2,8 +2,6 @@ import pygame
 
 def menu(game_state):
     GameName_FONT = pygame.font.SysFont("Arial", 180)
-    FONT = game_state.FONT
-    WIN = game_state.WIN
     
     game_state.WIN.fill(0)
     window_width, window_height = pygame.display.get_window_size()
@@ -11,9 +9,9 @@ def menu(game_state):
 
     # Textos e retângulos
     GameNameText = GameName_FONT.render("GAME NAME", True, "White")
-    NewGameText = FONT.render("NEW GAME", True, "White")
-    LoadText = FONT.render("LOAD", True, "White")
-    ExitText = FONT.render("EXIT", True, "White")
+    NewGameText = game_state.FONT.render("NEW GAME", True, "White")
+    LoadText = game_state.FONT.render("LOAD", True, "White")
+    ExitText = game_state.FONT.render("EXIT", True, "White")
 
     GameNameText_rect = GameNameText.get_rect(center=(center, 180))
     NewGameText_rect = NewGameText.get_rect(center=(center, 350))
@@ -24,19 +22,19 @@ def menu(game_state):
     choice = ""
 
     while running:
-        WIN.fill(0)  # Redesenha o fundo
+        game_state.WIN.fill(0)  # Redesenha o fundo
         mouse_pos = pygame.mouse.get_pos()  # Posição atual do mouse
 
         # Renderizar textos com destaque nos botões
-        WIN.blit(GameNameText, GameNameText_rect)
+        game_state.WIN.blit(GameNameText, GameNameText_rect)
 
-        NewGameText_hover = FONT.render("NEW GAME", True, "Yellow" if NewGameText_rect.collidepoint(mouse_pos) else "White")
-        LoadText_hover = FONT.render("LOAD", True, "Yellow" if LoadText_rect.collidepoint(mouse_pos) else "White")
-        ExitText_hover = FONT.render("EXIT", True, "Yellow" if ExitText_rect.collidepoint(mouse_pos) else "White")
+        NewGameText_hover = game_state.FONT.render("NEW GAME", True, "Yellow" if NewGameText_rect.collidepoint(mouse_pos) else "White")
+        LoadText_hover = game_state.FONT.render("LOAD", True, "Yellow" if LoadText_rect.collidepoint(mouse_pos) else "White")
+        ExitText_hover = game_state.FONT.render("EXIT", True, "Yellow" if ExitText_rect.collidepoint(mouse_pos) else "White")
 
-        WIN.blit(NewGameText_hover, NewGameText_rect)
-        WIN.blit(LoadText_hover, LoadText_rect)
-        WIN.blit(ExitText_hover, ExitText_rect)
+        game_state.WIN.blit(NewGameText_hover, NewGameText_rect)
+        game_state.WIN.blit(LoadText_hover, LoadText_rect)
+        game_state.WIN.blit(ExitText_hover, ExitText_rect)
 
         pygame.display.update()
 
