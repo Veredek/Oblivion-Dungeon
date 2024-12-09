@@ -82,7 +82,7 @@ def broken_sword():
         "MDEF": 0
     }
 
-    return broken_sword(name, place, stats)
+    return Equipament(name, place, stats)
 
 # ------ Equipaments List ------
     

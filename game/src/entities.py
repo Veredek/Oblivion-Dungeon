@@ -27,7 +27,7 @@ class Entity:
                 equipament.equip(self)
 
     def __str__(self):
-        # Representação amigável para depuração
+        # Representação para depuração
         stats_str = "\n".join(f"{key}: {value}" for key, value in self.stats.items())
         conditions_str = ", ".join(f"{key}: {value}" for key, value in self.conditions.items())
         equipaments_str = ", ".join(f"{key} ({value})" for key, value in self.equipaments.items())

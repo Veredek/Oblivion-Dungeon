@@ -13,3 +13,10 @@ def combatBox(WIN, FONT):
     WIN.blit(atkText, ())
 
     pygame.display.update()
+
+    
+# ====== mainBox Sizes ======
+mainBox_SIZE = (900, 200)
+mainBox_START = (50,550)
+mainBox_THICKNESS = 8
+
