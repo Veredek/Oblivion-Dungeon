@@ -1,0 +1,1 @@
+consertar bug de redimensionamento de tela

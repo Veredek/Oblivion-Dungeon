@@ -1,5 +1,5 @@
 import pygame
-from src.mainBox import draw_mainbox
+from game.src.Boxes import draw_mainbox
 
 def combatBox(WIN, FONT):
     WIN.fill()

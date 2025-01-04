@@ -3,9 +3,6 @@ class Equipament:
     VALID_PLACES = {"head", "body", "left hand", "right hand", "double hand", "legs", "feet", "accessory1", "accessory2"}
 
     def __init__(self, name, place, stats=None, skills=None, conditions=None):
-        if place not in self.VALID_PLACES:
-            raise ValueError(f"Invalid place '{place}'. Must be one of {self.VALID_PLACES}.")
-        
         self.name = name
         self.place = place
         self.stats = stats if stats is not None else {
@@ -22,7 +19,15 @@ class Equipament:
 
     def equip(self, entity):
         # --- place ---
-        entity.equipaments[self.place] = self.name
+        if self.place == "hand":
+            if entity.equipaments["right hand"] == None:
+                entity.equipaments["right hand"] = self.name
+            elif entity.equipaments["left hand"] == None:
+                entity.equipaments["left hand"] = self.name
+            else:  ### alterar depois para escolher posição ###
+                entity.equipaments["right hand"] = self.name
+        else:
+            entity.equipaments[self.place] = self.name
 
         # --- stats ---
         for stat in self.stats:
@@ -70,7 +75,7 @@ def equipament():
 def broken_sword():
     name = "Broken Sword"
 
-    place = "place"
+    place = "hand"
 
     stats = {
         "HP": 0,

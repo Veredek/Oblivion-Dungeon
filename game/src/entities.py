@@ -55,7 +55,6 @@ class Entity:
 
 # ------ Entities def ------
 def entity():
-
     name = "entity"
 
     stats = {
@@ -75,24 +74,35 @@ def entity():
     return Entity(name, stats, skills, inventory)    
 
 
-def player(player_name):
+def player__init__(player_name):
     name = player_name
 
     stats = {
+        "LEVEL" : 1,
+        "EXP" : 0,
+        "MAX_HP" : 100,
+        "MAX_MP" : 100,
+        "MAX_EXP" : 10,
         "HP": 100,
         "MP": 100,
         "STR": 10,
         "DEX": 10,
         "WIS": 10,
+        "FORT": 10,
+        "RES": 10,
         "DEF": 10,
-        "MDEF": 10
+        "MDEF": 10,
+        "gold": 0,
+        "attributes points": 0
     }
 
     skills = []
 
     inventory = ["Broken Sword"]
 
-    return Entity(name, stats, skills, inventory)
+    conditions = {"poisoned": 3}
+
+    return Entity(name, stats, skills, inventory, conditions)
 
 
 def slime():

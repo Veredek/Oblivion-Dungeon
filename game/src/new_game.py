@@ -1,82 +1,110 @@
 import pygame
 import time
-from src.mainBox import MainBox
+from src.Boxes import Boxes
+from assets.dialogues.script import Script
+from src.entities import player__init__
+from src.inventory import Inventory
+from src.esc_menu import EscMenu
+from src.definitions import basic_events
 
 # ====== Global Variables ======
 GAME_WIDTH = 1920
 GAME_HEIGHT = 1080
 GAME_FONT = pygame.font.SysFont("comicsans", 30)
 BASE_SURFACE = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
+HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
 TYPING_SPEED = 50  # Caracteres por segundo
+
+# ====== Definitions =======
 
 # ====== Código Principal ======
 def new_game(game_state):
     running = True
-    choice = ""
     clock = pygame.time.Clock()
     start_time = time.time()
-    main_box = MainBox()
+    boxes = Boxes()
+    script = Script()
+    inventory = Inventory()
+    game_state.ongame_state = "text"
+    player = player__init__(game_state.player_name)
+    esc_menu = EscMenu()
 
-    starting_text = "Você acorda em um lugar estranho, você não se lembra de muita coisa, então não sabe se já esteve aqui antes..."
     while running:
-        game_state.screen.window.fill(0)
+        BASE_SURFACE.fill(0)
 
         # ------ Definindo Variáveis ------
-        if game_state.screen.fullscreen:
-            scale = game_state.screen.fullscreen_scale
-            window_width, window_height = game_state.screen.screen_width, game_state.screen.screen_height
-        else:
-            scale = game_state.screen.window_scale
-            window_width, window_height = game_state.screen.window_width, game_state.screen.window_height
-        mouse_pos = pygame.mouse.get_pos()
-        size = (window_width,window_height)
+        screen = game_state.screen
+        mouse_pos = screen.get_mouse()
         elapsed_time = (time.time() - start_time)
 
         # ------ Escalonando ------
-        offset_x = (window_width - GAME_WIDTH * scale) // 2
-        offset_y = (window_height - GAME_HEIGHT * scale) // 2
-        mouse_pos = ((mouse_pos[0] - offset_x) / scale, (mouse_pos[1] - offset_y) / scale)
 
-        #
+        # ------ Verify Script ------
+        script_line = script.script()
 
-        # ------ Base Surface Blit ------
-        main_box.draw_text(BASE_SURFACE, starting_text)
+        # ====== PROCESSING ======
+        # ------ Esc ------
+        if esc_menu.inside:
+            esc_menu.esc(BASE_SURFACE, mouse_pos)
+
+        else:
+            # ------ After ------
+            if script_line == "AFTER":
+                if inventory.in_inventory:
+                    game_state.ongame_state = "inventory"
+                    inventory.inventory(BASE_SURFACE, boxes, player, game_state)
+                else:
+                    game_state.ongame_state = "after"
+                    after_mouse_over = boxes.after_box(BASE_SURFACE, mouse_pos)
+                    
+            # ------ Text ------
+            else:
+                game_state.ongame_state = "text"
+                boxes.draw_text(BASE_SURFACE,script)
 
         # ------ Window Blit ------
-        scaled_surface = pygame.transform.scale(BASE_SURFACE, (int(GAME_WIDTH * scale), int(GAME_HEIGHT * scale)))
-        game_state.screen.window.blit(scaled_surface, (offset_x, offset_y))
+        scaled_surface = pygame.transform.scale(BASE_SURFACE, (int(GAME_WIDTH * screen.scale), int(GAME_HEIGHT * screen.scale)))
+        screen.window.blit(scaled_surface, (screen.offset_x, screen.offset_y))
         pygame.display.flip()
 
         clock.tick(60)
 
+        # ------ Inventory Access ------
+
         # ------ Detectando Eventos ------
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                exit()
-
-            # Detecta eventos de redimensionamento
-            elif event.type == pygame.VIDEORESIZE:
-                if event.size != size:
-                    print(f"Event Size:{event.size},\nWindow Size:{size}\n")
-                    if game_state.screen.fullscreen == False:
-                        game_state.screen.resize(event)
-                        break
-                    size = event.size
+            basic_events(event, game_state)
 
             # Detecta Click Esquerdo do Mouse
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                pass
+            if event.type == pygame.MOUSEBUTTONDOWN:
+
+                if esc_menu.inside:
+                    if esc_menu.mouse_over(mouse_pos) == "continue":
+                        esc_menu.inside = False
+                    elif esc_menu.mouse_over(mouse_pos) == "quit":
+                        esc_menu.inside = False
+                        game_state.state = "Menu"
+                        game_state.ongame_state = "MENU"
+                        running = False
+
+                elif game_state.ongame_state == "after":
+                    if after_mouse_over == "inventory":
+                        inventory.in_inventory = True
             
-            # Verifica se F11 foi pressionado
+            # ------ Keydown ------
             elif event.type == pygame.KEYDOWN:
-                print("\nKEYDOWN")
-                if event.key == pygame.K_F11:
-                    print("\nF11")
-                    game_state.screen.toggle_fullscreen()
-                if event.key == pygame.K_RETURN or event.key == pygame.K_x:
-                    print("\nIn")
-                    main_box.skip_text = True
-
-
-    return choice
+                if event.key == pygame.K_RETURN:
+                    print("\nreturn")
+                    boxes.skip_text = True
+                elif event.key == pygame.K_x:
+                    print("\nx")
+                    if boxes.waiting:
+                        script.state += 1
+                        boxes.waiting = False
+                        boxes.skip_text = False
+                        boxes.time = time.time()
+                    elif game_state.ongame_state == "text":
+                        boxes.skip_text = True
+                elif event.key == pygame.K_ESCAPE:
+                    esc_menu.inside = True
+    return None
