@@ -1,5 +1,6 @@
 import pygame
 import time
+from src.definitions import special_highlight
 
 # ====== Global Variables ======
 GAME_WIDTH = 1920
@@ -26,21 +27,6 @@ EQUIPS_POS = (MAIN_BOX_POS[0] + MINOR_BOX_SIZE[0] + MINOR_BOX_DISTANCE, MINOR_BO
 STATS_POS = (MAIN_BOX_POS[0] + 2 * MINOR_BOX_SIZE[0] + 2 * MINOR_BOX_DISTANCE, MINOR_BOX_DISTANCE)
 
 # ====== Definitions ======
-# ------ Highlight Button ------
-def highlight(surface, font, text, text_rect,mouse_pos):
-    if text_rect.collidepoint(mouse_pos):
-        text_surface = font.render(text, True, "Yellow")
-        sign_surface = HIGHLIGHT_SIGN.render("+", True, "Yellow")
-        text_size = text_surface.get_size()
-        sign_size = sign_surface.get_size()
-        highlight_surface = pygame.Surface((text_size[0] + 2 * sign_size[0] + 10, text_size[1] if text_size[1] > sign_size[1] else sign_size[1]))
-        highlight_surface.blit(sign_surface, (0, (text_size[1] - sign_size[1]) // 2))
-        highlight_surface.blit(text_surface, (sign_size[0] + 5, 0))
-        highlight_surface.blit(sign_surface, (sign_size[0] + text_size[0] + 10, (text_size[1] - sign_size[1]) // 2))
-        surface.blit(highlight_surface, (text_rect[0] - sign_size[0] - 5, text_rect[1]))
-    else:
-        normal_surface = font.render(text, True, "White")
-        surface.blit(normal_surface, text_rect)
 
 # ====== Class Main Box ======
 class Boxes:
@@ -97,9 +83,11 @@ class Boxes:
 
     # ------ After Box ------
     def after_box(self, surface, mouse_pos, speed=TYPING_SPEED):
-        # Clear Box
-        self.draw_mainbox(surface)
+        # ------ Local Variables ------
         font = GAME_FONT
+
+        # ------ Clear Box ------
+        self.draw_mainbox(surface)
 
         # ------ Texts ------
         proceed_text = font.render("Proceed", True, "White")
@@ -110,12 +98,15 @@ class Boxes:
         inventory_text_rect = inventory_text.get_rect(center=(int(GAME_WIDTH * (2/3)), self.y + self.height // 2))
 
         # ------ Base Surface Blit ------
-        highlight(surface, font, "Proceed", proceed_text_rect, mouse_pos)
-        highlight(surface, font, "Inventory", inventory_text_rect, mouse_pos)
+        special_highlight(surface, font, "Proceed", proceed_text_rect, mouse_pos)
+        special_highlight(surface, font, "Inventory", inventory_text_rect, mouse_pos)
 
         # ------ Inventory Click ------
         if inventory_text_rect.collidepoint(mouse_pos):
             return "inventory"
+        
+        elif proceed_text_rect.collidepoint(mouse_pos):
+            return "proceed"
 
     def inventory_box(self, surface):
         pygame.draw.rect(surface, "White", (INVENTORY_POS[0], INVENTORY_POS[1], MINOR_BOX_SIZE[0], MINOR_BOX_SIZE[1]), 3, 10)
@@ -138,3 +129,28 @@ class Boxes:
         surface.blit(stats_text, stats_text_rect)
         pygame.draw.line(surface, "White", (STATS_POS[0], STATS_POS[1] + 1.5 * GAME_FONT_HEIGHT + PADDING), (STATS_POS[0] + MINOR_BOX_SIZE[0] - 3, STATS_POS[1] + 1.5 * GAME_FONT_HEIGHT + PADDING), 3)
 
+    def fight_box(self, surface, mouse_pos):
+        # ------ Local Variables ------
+        font = GAME_FONT
+
+        # ------ Clear Box ------
+        self.draw_mainbox(surface)
+
+        # ------ Texts ------
+        attack_text = font.render("Attack", True, 0)
+        skill_text = font.render("Skills", True, 0)
+        defend_text = font.render("Defend", True, 0)
+        escape_text = font.render("Escape", True, 0)
+
+        # ------ Rectangles ------
+        attack_text_rect = attack_text.get_rect(center=(MAIN_BOX_POS[0] + (1/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
+        skill_text_rect = skill_text.get_rect(center=(MAIN_BOX_POS[0] + (2/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
+        defend_text_rect = defend_text.get_rect(center=(MAIN_BOX_POS[0] + (3/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
+        escape_text_rect = escape_text.get_rect(center=(MAIN_BOX_POS[0] + (4/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
+
+        # ------ Base Surface Blit ------
+        special_highlight(surface, font, "Attack", attack_text_rect, mouse_pos)
+        special_highlight(surface, font, "Skills", skill_text_rect, mouse_pos)
+        special_highlight(surface, font, "Defend", defend_text_rect, mouse_pos)
+        special_highlight(surface, font, "Escape", escape_text_rect, mouse_pos)
+        

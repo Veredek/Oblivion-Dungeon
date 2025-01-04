@@ -150,7 +150,8 @@ class Screen:
 class GameState:
     def __init__(self, screen): 
         self.screen = screen
-        self.state = "Menu"
-        self.ongame_state = "MENU"
+        self.state = "MENU"
+        self.ongame_state = "menu"
         self.current_text = 0
         self.player_name = ""
+        self.room = 0

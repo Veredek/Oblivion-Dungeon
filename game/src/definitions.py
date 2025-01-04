@@ -17,7 +17,7 @@ PADDING = 20
 
 # ====== Definitions ======
 # ------ Highlight Button ------
-def special_highlight(surface, font, text, text_rect,mouse_pos):
+def special_highlight(surface, font, text, text_rect, mouse_pos):
     if text_rect.collidepoint(mouse_pos):
         text_surface = font.render(text, True, "Yellow")
         sign_surface = HIGHLIGHT_SIGN.render("+", True, "Yellow")
@@ -32,6 +32,17 @@ def special_highlight(surface, font, text, text_rect,mouse_pos):
         normal_surface = font.render(text, True, "White")
         surface.blit(normal_surface, text_rect)
 
+# ------ Normal Highlight ------
+def highlight(surface, font, text, rect ,mouse_pos):
+    text_surface = font.render(text, True, "white")
+    text_rect = text_surface.get_rect(center=(rect.x + rect.width/2, rect.y + rect.height/2))
+    if text_rect.collidepoint(mouse_pos):
+        highlight_surface = font.render(text, True, "White")
+        surface.blit(highlight_surface, text_rect)
+    else:
+        normal_surface = font.render(text, True, "Gray")
+        surface.blit(normal_surface, text_rect)
+        
 # ------ Text with Outline ------
 def glowing_text(text, font, text_color, outline_color, outline_width):
     # Renderizar o texto com a cor do contorno
@@ -53,6 +64,67 @@ def glowing_text(text, font, text_color, outline_color, outline_width):
 
     return surface
 
+# ------ Window Blit ------
+def blit_surface(surface, game_state):
+    screen = game_state.screen
+    scaled_surface = pygame.transform.scale(surface, (int(GAME_WIDTH * screen.scale), int(GAME_HEIGHT * screen.scale)))
+    screen.window.blit(scaled_surface, (screen.offset_x, screen.offset_y))
+    pygame.display.flip()             
+
+# ------ Esc Menu ------
+def esc_menu(game_state):
+    screen = game_state.screen
+
+    continue_text = GAME_FONT.render("Continue", True, "White")
+    quit_text = GAME_FONT.render("Quit", True, "White")
+
+    continue_text_rect = continue_text.get_rect(center=(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80))
+    quit_text_rect = quit_text.get_rect(center=(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40))
+
+    inside = True
+    while inside:
+        BASE_SURFACE.fill(0)
+        mouse_pos = screen.get_mouse()
+
+        special_highlight(BASE_SURFACE, GAME_FONT, "Continue", continue_text_rect, mouse_pos)
+        special_highlight(BASE_SURFACE, GAME_FONT, "Quit", quit_text_rect, mouse_pos)
+
+        blit_surface(BASE_SURFACE, game_state)
+
+        for event in pygame.event.get():
+            # ------ Close Game ------
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+
+            # ------ Resizing ------
+            elif event.type == pygame.VIDEORESIZE:
+                if event.size != screen.size:
+                    print(f"Event Size:{event.size},\nWindow Size:{screen.size}\n")
+                    if screen.fullscreen == False:
+                        screen.resize(event)
+
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_F11:
+                    print("F11\n")
+                    screen.toggle_fullscreen()
+
+                elif event.key == pygame.K_ESCAPE:
+                    inside = False
+
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # ------ CONTINUE ------
+                if continue_text_rect.collidepoint(mouse_pos):
+                    inside = False
+
+                # ------ QUIT ------
+                elif quit_text_rect.collidepoint(mouse_pos):
+                    game_state.state = "MENU"
+                    game_state.ongame_state = "menu"                    
+                    inside = False
+    return None
+
+# ------ Test for basic events ------
 def basic_events(event, game_state):
     screen = game_state.screen
     if event.type == pygame.QUIT:
@@ -68,7 +140,14 @@ def basic_events(event, game_state):
 
     elif event.type == pygame.KEYDOWN:
         if event.key == pygame.K_F11:
-            print("F11\n")
+            print("KEY: F11\n")
             screen.toggle_fullscreen()
+
+        elif event.key == pygame.K_ESCAPE:
+            if game_state.state == "MENU":
+                pass
+            else:
+                print("KEY: ESC\n")
+                esc_menu(game_state)
 
     return None

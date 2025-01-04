@@ -19,16 +19,16 @@ TYPING_SPEED = 50  # Caracteres por segundo
 
 # ====== Código Principal ======
 def new_game(game_state):
-    running = True
     clock = pygame.time.Clock()
     start_time = time.time()
     boxes = Boxes()
     script = Script()
     inventory = Inventory()
-    game_state.ongame_state = "text"
-    player = player__init__(game_state.player_name)
     esc_menu = EscMenu()
+    player = player__init__(game_state.player_name)
+    game_state.ongame_state = "text"
 
+    running = True
     while running:
         BASE_SURFACE.fill(0)
 
@@ -52,7 +52,7 @@ def new_game(game_state):
             if script_line == "AFTER":
                 if inventory.in_inventory:
                     game_state.ongame_state = "inventory"
-                    inventory.inventory(BASE_SURFACE, boxes, player, game_state)
+                    inventory.inventory(BASE_SURFACE, player, game_state)
                 else:
                     game_state.ongame_state = "after"
                     after_mouse_over = boxes.after_box(BASE_SURFACE, mouse_pos)
@@ -69,35 +69,25 @@ def new_game(game_state):
 
         clock.tick(60)
 
-        # ------ Inventory Access ------
-
         # ------ Detectando Eventos ------
         for event in pygame.event.get():
             basic_events(event, game_state)
 
             # Detecta Click Esquerdo do Mouse
             if event.type == pygame.MOUSEBUTTONDOWN:
-
-                if esc_menu.inside:
-                    if esc_menu.mouse_over(mouse_pos) == "continue":
-                        esc_menu.inside = False
-                    elif esc_menu.mouse_over(mouse_pos) == "quit":
-                        esc_menu.inside = False
-                        game_state.state = "Menu"
-                        game_state.ongame_state = "MENU"
-                        running = False
-
-                elif game_state.ongame_state == "after":
+                if game_state.ongame_state == "after":
                     if after_mouse_over == "inventory":
                         inventory.in_inventory = True
+                    if after_mouse_over == "proceed":
+                        game_state.ongame_state = "room"
             
             # ------ Keydown ------
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    print("\nreturn")
+                    print("Key: RETURN\n")
                     boxes.skip_text = True
                 elif event.key == pygame.K_x:
-                    print("\nx")
+                    print("Key: X\n")
                     if boxes.waiting:
                         script.state += 1
                         boxes.waiting = False
@@ -105,6 +95,9 @@ def new_game(game_state):
                         boxes.time = time.time()
                     elif game_state.ongame_state == "text":
                         boxes.skip_text = True
-                elif event.key == pygame.K_ESCAPE:
-                    esc_menu.inside = True
+
+        # ------ Check if in New Game Yet ------
+        if game_state.state != "NEW GAME":
+            running = False
+
     return None

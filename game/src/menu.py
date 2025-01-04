@@ -1,32 +1,33 @@
 import pygame
-from src.definitions import special_highlight, basic_events
+from src.definitions import special_highlight, basic_events, blit_surface
 
 # ====== Global Variables ======
 GAME_WIDTH = 1920
 GAME_HEIGHT = 1080
+BASE_SURFACE = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
 GAME_TITLE = "Oblivion Dungeon"
 GAME_NAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf",140)
 GAME_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", 65)
 TEXT_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 45)
 TEXT_HEIGHT = GAME_FONT.size("Text Sample")[1]
 NAME_LENGTH = GAME_FONT.size(12 * "#")[0]
-BASE_SURFACE = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
 PADDING = 20
 
 # ====== Menu ======
 def menu(game_state):
-    running = True
+    screen = game_state.screen
     game_state.player_name = ""
+
+    running = True
     while running:
         # ------ Clear Base Surface ------
         BASE_SURFACE.fill(0)
 
-        # ------ Definindo Variáveis ------
-        screen = game_state.screen
+        # ------ Loop Variables ------
         mouse_pos = screen.get_mouse()
 
         # ====== Menu Screen ======
-        if game_state.ongame_state == "MENU":
+        if game_state.ongame_state == "menu":
             # ------ Texts ------
             gamename_text = GAME_NAME_FONT.render(GAME_TITLE, True, "White")
             newgame_text = GAME_FONT.render("New Game", True, "White")
@@ -46,7 +47,7 @@ def menu(game_state):
             special_highlight(BASE_SURFACE, GAME_FONT, "Exit", exit_text_rect, mouse_pos)
 
         # ====== Your Name Screen ======
-        elif game_state.ongame_state == "YOUR NAME":
+        elif game_state.ongame_state == "your name":
             # Name Box Blit
             x = (GAME_WIDTH - NAME_LENGTH) // 2 - PADDING
             y = int(GAME_HEIGHT * (5/12)) - PADDING
@@ -75,9 +76,7 @@ def menu(game_state):
             BASE_SURFACE.blit(player_name, player_name_rect)
 
         # ------ Window Blit ------
-        scaled_surface = pygame.transform.scale(BASE_SURFACE, (int(GAME_WIDTH * screen.scale), int(GAME_HEIGHT * screen.scale)))
-        screen.window.blit(scaled_surface, (screen.offset_x, screen.offset_y))
-        pygame.display.flip()
+        blit_surface(BASE_SURFACE, game_state)
 
         # ------ Detectando Eventos ------
         for event in pygame.event.get():
@@ -85,26 +84,26 @@ def menu(game_state):
 
             # LEFT CLICK
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if game_state.ongame_state == "MENU":
+                if game_state.ongame_state == "menu":
                     if newgame_text_rect.collidepoint(mouse_pos):
-                        game_state.ongame_state = "YOUR NAME"
+                        game_state.ongame_state = "your name"
                     elif loadgame_text_rect.collidepoint(mouse_pos):
-                        game_state.ongame_state = "LOAD"
+                        game_state.ongame_state = "load"
                         running = False
                     elif exit_text_rect.collidepoint(mouse_pos):
-                        game_state.state = "Exit Game"
+                        game_state.state = "EXIT GAME"
                         running = False
-                elif game_state.ongame_state == "YOUR NAME":
+                elif game_state.ongame_state == "your name":
                     if enter_text_rect.collidepoint(mouse_pos) and game_state.player_name != "":
-                        game_state.state = "New Game"
+                        game_state.state = "NEW GAME"
                         running = False
                     if back_text_rect.collidepoint(mouse_pos):
-                        game_state.ongame_state = "MENU"
+                        game_state.ongame_state = "menu"
             
             # KEYDOWN
             elif event.type == pygame.KEYDOWN:
                 # Digitando Nome
-                if game_state.ongame_state == "YOUR NAME":
+                if game_state.ongame_state == "your name":
                     if event.key == pygame.K_BACKSPACE:
                         game_state.player_name = game_state.player_name[:-1]
                     elif event.key == pygame.K_RETURN and len(game_state.player_name) > 0:

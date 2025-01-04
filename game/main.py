@@ -7,14 +7,6 @@ import time
 time.sleep(0.1)
 from src.classes import Screen, GameState
 
-# ====== Global Variables ======
-GAME_WIDTH = 1920
-GAME_HEIGHT = 1080
-MIN_WINDOW_WIDTH = 854
-MIN_WINDOW_HEIGHT = 480
-FPS = 60
-GAME_TITLE = "OBLIVION DUNGEON"
-
 # ====== Main Function ======
 def main():
     screen = Screen()
@@ -27,13 +19,13 @@ def main():
             if event.type == pygame.QUIT:
                 running = False
 
-        if game_state.state == "Menu":
+        if game_state.state == "MENU":
             menu(game_state)
 
-        elif game_state.state == "New Game":
+        elif game_state.state == "NEW GAME":
             new_game(game_state)
 
-        elif game_state.state == "Exit Game":
+        elif game_state.state == "EXIT GAME":
             running = False
 
     pygame.quit()
