@@ -152,17 +152,17 @@ def basic_events(event):
     return None
 
 def load_image(name: str):
-    fullname = f"C:\\Users\\Hugo\\.vscode\\game\\assets\\images\\{name}.png"
+    fullname = os.path.join("game", "assets", "images", f"{name}.png")
     image = pygame.image.load(fullname)
     return image
 
-def p_dmg(caster, target):
-    c_str = caster.stats["STR"]
-    t_def = target.stats["DEF"]
-    reduction = 5 * math.log10(t_def) + t_def / 10
+def physical_dmg(caster, target, scale):
+    caster_str = caster.stats["STR"]
+    target_def = target.stats["DEF"]
+    reduction = 5 * math.log10(target_def) + target_def / 10
     reduction = reduction / 100
     reduction = reduction if reduction > 0 else 0
-    damage = c_str - t_def
+    damage = scale * caster_str - target_def
     damage = round(damage - reduction * damage)
 
     return damage

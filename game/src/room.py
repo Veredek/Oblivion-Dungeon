@@ -85,7 +85,8 @@ class Room:
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if mouse_over == "attack":
-                        SKILLS["attack"](player, enemy)
+                        skill = SKILLS["attack"]()
+                        skill.activate(player, enemy)
                         flash_enemy(enemy)
                         print(enemy.stats["HP"])
                     # ------ Escape ------

@@ -1,38 +1,41 @@
 import pygame
 import math
-from src.definitions import p_dmg
+from src.definitions import physical_dmg
 # ------ Class Skills ------
 class Skill:
-    def __init__(self, name, type, damage=0, condition=None):
+    def __init__(self, name, type, multicast = 1, scale = 1, condition=None):
         self.name = name
         self.type = type
-        self.damage = damage
+        self.multicast = multicast
+        self.scale = scale
         self.condition = condition if condition else {}
 
-    def activate(self, *player_entity, enemy_entity):
-        if self.damage > 0:
-            enemy_entity.stats["HP"] -= self.damage 
-        if self.condition:
-            for cond, value in self.condition.items():
-                enemy_entity.gain_condition(cond, value)
-
     def __str__(self):
-        return f"Skill {self.name}: Damage = {self.damage}, Condition = {self.condition}"
+        return f"Skill ({self.name}): Type = {self.type}, Multicast = {self.multicast}, Condition = {self.condition}"
 
+    def activate(self, caster, target = None):
+        # ------ Normal Physical Damage ------
+        if self.type == "physical":
+            damage = 0
+            for cast in range(self.multicast):
+                damage += physical_dmg(caster, target, self.scale)
+            target.stats["HP"] -= damage
 
 # ------ Skills List ------
 def skill():
     name = "Skill"
     type = "Type"
-    damage = 0
+    multicast = 1
+    scale = 1
     condition = None
 
-    return Skill(name, type, damage, condition)
+    return Skill(name, type, multicast, scale, condition)
 
-def attack(caster, target):
-    damage = p_dmg(caster, target)
-    target.stats["HP"] -= damage
-    return None
+def attack():
+    name = "attack"
+    type = "physical"
+
+    return Skill(name, type)
 
 SKILLS = {
     "attack" : attack

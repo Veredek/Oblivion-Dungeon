@@ -1,1 +1,9 @@
+# ====== modified ======
+enemy image path is now relative path
+skills (physical) added: multicast, scale
+added file: cache_remove
+
+# ====== working
+
+# ====== to modify ======
 ajustar variables.py
