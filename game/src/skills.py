@@ -1,3 +1,6 @@
+import pygame
+import math
+from src.definitions import p_dmg
 # ------ Class Skills ------
 class Skill:
     def __init__(self, name, type, damage=0, condition=None):
@@ -26,9 +29,11 @@ def skill():
 
     return Skill(name, type, damage, condition)
 
-def attack(entity):
-    name = "Attack"
-    type = "physical"
-    damage = entity.stats.get("STR")
+def attack(caster, target):
+    damage = p_dmg(caster, target)
+    target.stats["HP"] -= damage
+    return None
 
-    return Skill(name, type, damage)
+SKILLS = {
+    "attack" : attack
+}

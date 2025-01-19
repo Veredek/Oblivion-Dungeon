@@ -1,9 +1,20 @@
+import pygame
 from src.equipaments import EQUIPAMENTS
+from src.skills import SKILLS
+from src.definitions import load_image
+# ====== Global Objects ======
+from src.classes import screen
 
+# ====== Global Variables ======
+from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE, TRANSPARENT_SURFACE ,ENEMY_CENTER
+
+# ====== Definitions ======
+  
 # ------ Entity Class ------
 class Entity:
     def __init__(self, name: str, stats: dict, skills: list, inventory: list, conditions: dict = None):
         self.name = name
+        if name != "": self.img = load_image(self.name)
         self.stats = stats
         self.skills = skills
         self.inventory = inventory
@@ -19,6 +30,8 @@ class Entity:
             "accessory2": None
         }
         self.conditions = conditions if conditions is not None else {}
+
+        self.flashing = False
 
         for item in inventory:
             if item in EQUIPAMENTS:
@@ -41,6 +54,16 @@ class Entity:
             f"Inventory: {inventory_str if self.inventory else 'None'}"
         )
 
+    def image(self):
+        size = self.img.get_size()
+        scale = (GAME_HEIGHT / 2) / size[1]
+        resized_img = pygame.transform.scale_by(self.img, scale)
+        return resized_img
+
+    def blit(self):
+        enemy_surface = self.image()
+        enemy_surface_rect = enemy_surface.get_rect(center=ENEMY_CENTER)
+        BASE_SURFACE.blit(enemy_surface, enemy_surface_rect)
 
     def gain_condition(self, condition_name, value):
         # Previne stun se o personagem for imune
@@ -74,8 +97,9 @@ def entity():
     return Entity(name, stats, skills, inventory)    
 
 
-def player__init__(player_name):
-    name = player_name
+# ====== Inicializing Player ======
+def player__init__():
+    name = ""
 
     stats = {
         "LEVEL" : 1,
@@ -96,7 +120,7 @@ def player__init__(player_name):
         "attributes points": 0
     }
 
-    skills = []
+    skills = ["attack"]
 
     inventory = ["Broken Sword"]
 
@@ -104,7 +128,9 @@ def player__init__(player_name):
 
     return Entity(name, stats, skills, inventory, conditions)
 
+player = player__init__()
 
+# ====== Enemies ======
 def slime():
     name = "Slime"
 

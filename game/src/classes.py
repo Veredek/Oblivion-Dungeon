@@ -3,8 +3,8 @@ pygame.init()
 pygame.font.init()
 
 # ====== Global Variables ======
-GAME_WIDTH = 1920
-GAME_HEIGHT = 1080
+from src.variables import GAME_WIDTH, GAME_HEIGHT
+
 MIN_WINDOW_WIDTH = 854
 MIN_WINDOW_HEIGHT = 480
 FPS = 60
@@ -146,6 +146,8 @@ class Screen:
         print(f"New resolution: {self.window_width}x{self.window_height}")
         print(f"Maximized: {self.maximized}\n")
 
+screen = Screen()
+
 # ====== Class GameState ======
 class GameState:
     def __init__(self, screen): 
@@ -155,3 +157,5 @@ class GameState:
         self.current_text = 0
         self.player_name = ""
         self.room = 0
+
+game_state = GameState(screen)

@@ -1,23 +1,25 @@
 import pygame
+import math
+import time
+import os
 pygame.init()
 pygame.font.init()
 
+# ====== Global Objects ======
+from src.classes import screen, game_state
+
 # ====== Global Variables ======
-GAME_WIDTH = 1920
-GAME_HEIGHT = 1080
-GAME_TITLE = "Oblivion Dungeon"
-GAME_NAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf",140)
-GAME_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", 65)
-TEXT_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 45)
-HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
-TEXT_HEIGHT = GAME_FONT.size("Text Sample")[1]
-NAME_LENGTH = GAME_FONT.size(12 * "#")[0]
-BASE_SURFACE = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
-PADDING = 20
+from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE, TRANSPARENT_SURFACE, ENEMY_CENTER
+from src.variables import TITLE_FONT, TEXT_FONT, PADDING
+from src.variables import HIGHLIGHT_SIGN
+
+TEXT_HEIGHT = TITLE_FONT.size("Text Sample")[1]
+NAME_LENGTH = TITLE_FONT.size(12 * "#")[0]
 
 # ====== Definitions ======
 # ------ Highlight Button ------
-def special_highlight(surface, font, text, text_rect, mouse_pos):
+def special_highlight(surface, font, text, text_rect):
+    mouse_pos = screen.get_mouse()
     if text_rect.collidepoint(mouse_pos):
         text_surface = font.render(text, True, "Yellow")
         sign_surface = HIGHLIGHT_SIGN.render("+", True, "Yellow")
@@ -33,7 +35,8 @@ def special_highlight(surface, font, text, text_rect, mouse_pos):
         surface.blit(normal_surface, text_rect)
 
 # ------ Normal Highlight ------
-def highlight(surface, font, text, rect ,mouse_pos):
+def highlight(surface, font, text, rect):
+    mouse_pos = screen.get_mouse()
     text_surface = font.render(text, True, "white")
     text_rect = text_surface.get_rect(center=(rect.x + rect.width/2, rect.y + rect.height/2))
     if text_rect.collidepoint(mouse_pos):
@@ -65,18 +68,15 @@ def glowing_text(text, font, text_color, outline_color, outline_width):
     return surface
 
 # ------ Window Blit ------
-def blit_surface(surface, game_state):
-    screen = game_state.screen
+def blit_surface(surface: pygame.surface.Surface):
     scaled_surface = pygame.transform.scale(surface, (int(GAME_WIDTH * screen.scale), int(GAME_HEIGHT * screen.scale)))
     screen.window.blit(scaled_surface, (screen.offset_x, screen.offset_y))
     pygame.display.flip()             
 
 # ------ Esc Menu ------
-def esc_menu(game_state):
-    screen = game_state.screen
-
-    continue_text = GAME_FONT.render("Continue", True, "White")
-    quit_text = GAME_FONT.render("Quit", True, "White")
+def esc_menu():
+    continue_text = TITLE_FONT.render("Continue", True, "White")
+    quit_text = TITLE_FONT.render("Quit", True, "White")
 
     continue_text_rect = continue_text.get_rect(center=(GAME_WIDTH / 2, GAME_HEIGHT / 2 - 80))
     quit_text_rect = quit_text.get_rect(center=(GAME_WIDTH / 2, GAME_HEIGHT / 2 + 40))
@@ -86,10 +86,10 @@ def esc_menu(game_state):
         BASE_SURFACE.fill(0)
         mouse_pos = screen.get_mouse()
 
-        special_highlight(BASE_SURFACE, GAME_FONT, "Continue", continue_text_rect, mouse_pos)
-        special_highlight(BASE_SURFACE, GAME_FONT, "Quit", quit_text_rect, mouse_pos)
+        special_highlight(BASE_SURFACE, TITLE_FONT, "Continue", continue_text_rect)
+        special_highlight(BASE_SURFACE, TITLE_FONT, "Quit", quit_text_rect)
 
-        blit_surface(BASE_SURFACE, game_state)
+        blit_surface(BASE_SURFACE)
 
         for event in pygame.event.get():
             # ------ Close Game ------
@@ -125,8 +125,7 @@ def esc_menu(game_state):
     return None
 
 # ------ Test for basic events ------
-def basic_events(event, game_state):
-    screen = game_state.screen
+def basic_events(event):
     if event.type == pygame.QUIT:
         pygame.quit()
         exit()
@@ -148,6 +147,23 @@ def basic_events(event, game_state):
                 pass
             else:
                 print("KEY: ESC\n")
-                esc_menu(game_state)
+                esc_menu()
 
     return None
+
+def load_image(name: str):
+    fullname = f"C:\\Users\\Hugo\\.vscode\\game\\assets\\images\\{name}.png"
+    image = pygame.image.load(fullname)
+    return image
+
+def p_dmg(caster, target):
+    c_str = caster.stats["STR"]
+    t_def = target.stats["DEF"]
+    reduction = 5 * math.log10(t_def) + t_def / 10
+    reduction = reduction / 100
+    reduction = reduction if reduction > 0 else 0
+    damage = c_str - t_def
+    damage = round(damage - reduction * damage)
+
+    return damage
+

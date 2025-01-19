@@ -2,76 +2,67 @@ import pygame
 import time
 from src.Boxes import Boxes
 from assets.dialogues.script import Script
-from src.entities import player__init__
 from src.inventory import Inventory
-from src.esc_menu import EscMenu
-from src.definitions import basic_events
+from src.room import Room
+# ====== Global Objects ======
+from src.classes import screen, game_state
+from src.entities import player
 
 # ====== Global Variables ======
-GAME_WIDTH = 1920
-GAME_HEIGHT = 1080
-GAME_FONT = pygame.font.SysFont("comicsans", 30)
-BASE_SURFACE = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
-HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
-TYPING_SPEED = 50  # Caracteres por segundo
+from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE
 
 # ====== Definitions =======
+from src.definitions import basic_events, blit_surface
 
 # ====== Código Principal ======
-def new_game(game_state):
+def new_game():
     clock = pygame.time.Clock()
     start_time = time.time()
     boxes = Boxes()
     script = Script()
     inventory = Inventory()
-    esc_menu = EscMenu()
-    player = player__init__(game_state.player_name)
+    room = Room()
     game_state.ongame_state = "text"
 
     running = True
     while running:
+        if game_state.state != "NEW GAME": break
         BASE_SURFACE.fill(0)
 
         # ------ Definindo Variáveis ------
-        screen = game_state.screen
         mouse_pos = screen.get_mouse()
         elapsed_time = (time.time() - start_time)
-
-        # ------ Escalonando ------
 
         # ------ Verify Script ------
         script_line = script.script()
 
         # ====== PROCESSING ======
-        # ------ Esc ------
-        if esc_menu.inside:
-            esc_menu.esc(BASE_SURFACE, mouse_pos)
+        # ------ Room ------
+        if game_state.ongame_state == "room":
+            room.enemy_room()
 
-        else:
-            # ------ After ------
-            if script_line == "AFTER":
-                if inventory.in_inventory:
-                    game_state.ongame_state = "inventory"
-                    inventory.inventory(BASE_SURFACE, player, game_state)
-                else:
-                    game_state.ongame_state = "after"
-                    after_mouse_over = boxes.after_box(BASE_SURFACE, mouse_pos)
-                    
-            # ------ Text ------
+        # ------ After Room ------
+        elif script_line == "AFTER":
+            if inventory.in_inventory:
+                game_state.ongame_state = "inventory"
+                inventory.inventory(player)
             else:
-                game_state.ongame_state = "text"
-                boxes.draw_text(BASE_SURFACE,script)
+                game_state.ongame_state = "after"
+                after_mouse_over = boxes.after_box(BASE_SURFACE)
+                
+        # ------ Text ------
+        else:
+            game_state.ongame_state = "text"
+            boxes.draw_text(BASE_SURFACE,script)
 
         # ------ Window Blit ------
-        scaled_surface = pygame.transform.scale(BASE_SURFACE, (int(GAME_WIDTH * screen.scale), int(GAME_HEIGHT * screen.scale)))
-        screen.window.blit(scaled_surface, (screen.offset_x, screen.offset_y))
-        pygame.display.flip()
+        if game_state.state == "NEW GAME" : blit_surface(BASE_SURFACE)
 
         clock.tick(60)
 
         # ------ Detectando Eventos ------
         for event in pygame.event.get():
-            basic_events(event, game_state)
+            basic_events(event)
 
             # Detecta Click Esquerdo do Mouse
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -96,8 +87,7 @@ def new_game(game_state):
                     elif game_state.ongame_state == "text":
                         boxes.skip_text = True
 
-        # ------ Check if in New Game Yet ------
-        if game_state.state != "NEW GAME":
-            running = False
+        # ------ Exit ------
+        if game_state.state != "NEW GAME": break
 
     return None

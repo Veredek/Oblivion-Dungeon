@@ -4,18 +4,16 @@ from src.Boxes import Boxes
 from src.Boxes import INVENTORY_POS, MINOR_BOX_SIZE, MAIN_BOX_POS, MAIN_BOX_SIZE, MINOR_BOX_TITLE_HEIGHT, MINOR_BOX_DISTANCE, STATS_POS, EQUIPS_POS
 from src.definitions import special_highlight, glowing_text, basic_events, highlight, blit_surface
 
-# ====== Global Variables ======
-GAME_WIDTH = 1920
-GAME_HEIGHT = 1080
-BASE_SURFACE = pygame.Surface((GAME_WIDTH,GAME_HEIGHT))
+# ====== Global Objects ======
+from src.classes import screen, game_state
 
-GAME_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", 65)
-TEXT_HEIGHT = GAME_FONT.size("Text Sample")[1]
-TEXT_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 45)
+# ====== Global Variables ======
+from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE
+from src.variables import TITLE_FONT, TEXT_FONT, PADDING
+from src.variables import HIGHLIGHT_SIGN, HIGHLIGHT_SIGN_SIZE
+
+GAMETEXT_HEIGHT = TITLE_FONT.size("Text Sample")[1]
 HPMPXP_FONT = pygame.font.Font(r"game\assets\fonts\FancyCardText.ttf", 35)
-HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
-HIGHLIGHT_SIGN_SIZE = HIGHLIGHT_SIGN.render("+", True, "Yellow").get_size()
-PADDING = 20
 
 PLUS_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 30)
 PLUS_TEXT = PLUS_FONT.render(" + ", True, "white",)
@@ -94,7 +92,9 @@ def bars(surface, player):
             surface.blit(glowing_text(f"{player.stats["EXP"]}/{player.stats["MAX_EXP"]}", HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
 
 # ------ Attributes ------
-def attributes(surface, player, mouse_pos):
+def attributes(surface, player):
+    mouse_pos = screen.get_mouse()
+
     pygame.draw.rect(surface, "white", (ATTRIBUTES_POS[0],
                                            ATTRIBUTES_POS[1],
                                            ATTRIBUTES_SIZE[0],
@@ -118,7 +118,7 @@ def attributes(surface, player, mouse_pos):
         # PLUS SIGN
         plus_rect = PLUS_TEXT.get_rect(midleft=(ATTRIBUTES_POS[0] + ATTRIBUTES_SIZE[0] + 5, ATTRIBUTES_POS[1] + PLUS_TEXT.get_height() + i*ATTRIBUTES_TEXT_HEIGHT))
         pygame.draw.rect(surface, "white" if plus_rect.collidepoint(mouse_pos) else "darkgray", plus_rect, 2)
-        highlight(surface, PLUS_FONT, " + ", plus_rect, mouse_pos)
+        highlight(surface, PLUS_FONT, " + ", plus_rect)
 
         # INTERNAL LINES BLIT
         pygame.draw.line(surface, "white", (ATTRIBUTES_POS[0] + ATTRIBUTES_TEXT_MAXWIDTH, ATTRIBUTES_POS[1]), (ATTRIBUTES_POS[0] + ATTRIBUTES_TEXT_MAXWIDTH, ATTRIBUTES_POS[1] + ATTRIBUTES_SIZE[1] -1), 2)
@@ -142,7 +142,9 @@ def attributes(surface, player, mouse_pos):
     pygame.draw.line(surface, "white", (rect_pos[0] + rect_size[0]/2, rect_pos[1] + points_text.get_height()), (rect_pos[0] + rect_size[0]/2, rect_pos[1] + points_text.get_height() + applyclear_text.get_height() -1), 2)
 
 # ------ Conditions ------
-def conditions(surface, player, mouse_pos):
+def conditions(surface, player):
+    mouse_pos = screen.get_mouse()
+
     conditions_text = TEXT_FONT.render("Conditions: ", True, "white")
     conditions_text_rect = conditions_text.get_rect(topleft=(CONDITIONS_POS[0], CONDITIONS_POS[1]))
     surface.blit(conditions_text, conditions_text_rect)
@@ -168,11 +170,10 @@ def equips(surface, player):
 class Inventory:
     def __init__(self):
         self.in_inventory = False
-        self.back_text = GAME_FONT.render("Back", True, "white")
+        self.back_text = TITLE_FONT.render("Back", True, "white")
         self.back_text_rect = self.back_text.get_rect(bottomright = (MAIN_BOX_POS[0] + MAIN_BOX_SIZE[0] - PADDING - HIGHLIGHT_SIGN_SIZE[0], MAIN_BOX_POS[1] + MAIN_BOX_SIZE[1] - PADDING))
 
-    def inventory(self, surface, player, game_state):
-        screen = game_state.screen
+    def inventory(self, player):
         boxes = Boxes()
         running = True
         while running:
@@ -180,32 +181,32 @@ class Inventory:
             mouse_pos = screen.get_mouse()
 
             # ------ Screen ------
-            surface.fill(0)
-            boxes.inventory_box(surface)
-            boxes.equips_box(surface)
-            boxes.stats_box(surface)
-            boxes.draw_mainbox(surface)
-            special_highlight(surface, GAME_FONT, "Back", self.back_text_rect, mouse_pos)
+            BASE_SURFACE.fill(0)
+            boxes.inventory_box(BASE_SURFACE)
+            boxes.equips_box(BASE_SURFACE)
+            boxes.stats_box(BASE_SURFACE)
+            boxes.draw_mainbox(BASE_SURFACE)
+            special_highlight(BASE_SURFACE, TITLE_FONT, "Back", self.back_text_rect)
 
             # ------ Inventory Items List ------
             for item_pos in range(len(player.inventory)):
-                item_text = TEXT_FONT.render(player.inventory[item_pos], True, "Gray")
-                item_text_rect = item_text.get_rect(topleft=(MAIN_BOX_POS[0] + PADDING, MINOR_BOX_TITLE_HEIGHT + PADDING + (item_pos * TEXT_HEIGHT)))
-                highlight(surface, TEXT_FONT, player.inventory[item_pos], item_text_rect, mouse_pos)
+                item_text = TEXT_FONT.render(player.inventory[item_pos], True, 0)
+                item_text_rect = item_text.get_rect(topleft=(MAIN_BOX_POS[0] + PADDING, MINOR_BOX_TITLE_HEIGHT + PADDING + (item_pos * GAMETEXT_HEIGHT)))
+                highlight(BASE_SURFACE, TEXT_FONT, player.inventory[item_pos], item_text_rect)
             
             # ------ Stats ------
-            bars(surface, player)
-            attributes(surface, player, mouse_pos)
-            conditions_rects = conditions(surface, player, mouse_pos)
-            equips(surface, player)
+            bars(BASE_SURFACE, player)
+            attributes(BASE_SURFACE, player)
+            conditions_rects = conditions(BASE_SURFACE, player)
+            equips(BASE_SURFACE, player)
 
             # ------ Window Blit ------
-            blit_surface(surface, game_state)
+            if game_state.ongame_state == "inventory": blit_surface(BASE_SURFACE)
 
             # ------ Detectando Eventos ------
             for event in pygame.event.get():
                 # ------ Check Basic Events ------
-                basic_events(event, game_state)
+                basic_events(event)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                 # ------ Quit Inventory ------

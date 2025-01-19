@@ -5,28 +5,24 @@ from src.menu import menu
 from src.new_game import new_game
 import time
 time.sleep(0.1)
-from src.classes import Screen, GameState
+
+# ====== Global Objects ======
+from src.classes import screen, game_state
 
 # ====== Main Function ======
 def main():
-    screen = Screen()
-    game_state = GameState(screen)
     running = True
 
     while running:
 
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
+            if event.type == pygame.QUIT: running = False
 
-        if game_state.state == "MENU":
-            menu(game_state)
+        if game_state.state == "MENU": menu()
 
-        elif game_state.state == "NEW GAME":
-            new_game(game_state)
+        elif game_state.state == "NEW GAME": new_game()
 
-        elif game_state.state == "EXIT GAME":
-            running = False
+        elif game_state.state == "EXIT GAME": break
 
     pygame.quit()
 
