@@ -8,13 +8,19 @@ from src.classes import screen, game_state
 from src.entities import player
 
 # ====== Global Variables ======
-from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE
+from src.variables import GAME_WIDTH, GAME_HEIGHT, RESOLUTION_SCALE, BASE_SURFACE
 from src.variables import TITLE_FONT, TEXT_FONT, PADDING
 
 GAME_NAME = "Oblivion Dungeon"
-GAME_NAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf",140)
+GAME_NAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf", int(RESOLUTION_SCALE * 140))
+NAMEBOX_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", int(RESOLUTION_SCALE * 75))
 TEXT_HEIGHT = TITLE_FONT.size("Text Sample")[1]
 NAME_LENGTH = TITLE_FONT.size(12 * "#")[0]
+
+NAMEBOX_POS = ((GAME_WIDTH - NAME_LENGTH) // 2 - PADDING,
+               int(GAME_HEIGHT * (5/12)) - PADDING)
+NAMEBOX_SIZE = (NAME_LENGTH + 2 * PADDING,
+                TEXT_HEIGHT + 2 * PADDING)
 
 # ====== Menu ======
 def menu():
@@ -38,8 +44,8 @@ def menu():
             # ------ Rectangles ------
             gamename_text_rect = gamename_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 5))
             newgame_text_rect = newgame_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4))
-            loadgame_text_rect = loadgame_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4 + 80))
-            exit_text_rect = exit_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4 + 160))
+            loadgame_text_rect = loadgame_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4 + int(RESOLUTION_SCALE * 80)))
+            exit_text_rect = exit_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4 + int(RESOLUTION_SCALE * 160)))
 
             # ------ Base Surface Blit ------
             BASE_SURFACE.blit(gamename_text, gamename_text_rect)
@@ -49,15 +55,11 @@ def menu():
 
         # ====== Your Name Screen ======
         elif game_state.ongame_state == "your name":
-            # Name Box Blit
-            x = (GAME_WIDTH - NAME_LENGTH) // 2 - PADDING
-            y = int(GAME_HEIGHT * (5/12)) - PADDING
-            width = NAME_LENGTH + 2 * PADDING
-            height = TEXT_HEIGHT + 2 * PADDING
-            pygame.draw.rect(BASE_SURFACE, "White", (x, y, width, height), 3, 10)
+            # ------ Name Box Blit ------
+            pygame.draw.rect(BASE_SURFACE, "White", (NAMEBOX_POS[0], NAMEBOX_POS[1], NAMEBOX_SIZE[0], NAMEBOX_SIZE[1]), 3, 10)
 
             # ------ Texts ------
-            your_name_font = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", 75)
+            your_name_font = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", int(RESOLUTION_SCALE * 75))
 
             your_name_text = your_name_font.render("Your Name", True, "White")
             enter_text = TITLE_FONT.render("Enter", True, "White")
@@ -66,9 +68,9 @@ def menu():
 
             # ------ Rectangles ------
             your_name_text_rect = your_name_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12))))
-            enter_text_rect = enter_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12)) + height + 140))
-            back_text_rect = back_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12)) + height + 220))
-            player_name_rect = player_name_surface.get_rect(center=(x + width // 2, y + height // 2))
+            enter_text_rect = enter_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12)) + NAMEBOX_SIZE[1] + 140))
+            back_text_rect = back_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12)) + NAMEBOX_SIZE[1] + 220))
+            player_name_rect = player_name_surface.get_rect(center=(GAME_WIDTH // 2, NAMEBOX_POS[1] + NAMEBOX_SIZE[1] // 2))
 
             # ------ Base Surface Blit ------
             BASE_SURFACE.blit(your_name_text, your_name_text_rect)

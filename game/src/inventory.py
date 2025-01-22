@@ -185,7 +185,7 @@ class Inventory:
             boxes.inventory_box(BASE_SURFACE)
             boxes.equips_box(BASE_SURFACE)
             boxes.stats_box(BASE_SURFACE)
-            boxes.draw_mainbox(BASE_SURFACE)
+            boxes.draw_mainbox()
             special_highlight(BASE_SURFACE, TITLE_FONT, "Back", self.back_text_rect)
 
             # ------ Inventory Items List ------

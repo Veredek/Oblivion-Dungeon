@@ -1,9 +1,14 @@
 # ====== modified ======
-enemy image path is now relative path
-skills (physical) added: multicast, scale
-added file: cache_remove
+(solved) inventory drawmainbox error 
+dynamic game resolution (fit to screen)
 
-# ====== working
+# ====== working ======
+adjusting all game surface blit to fit different resolutions
 
 # ====== to modify ======
 ajustar variables.py
+
+# ====== latest modications ======
+enemy image path is now relative path
+skills (physical) added: multicast, scale
+added file: cache_remove
