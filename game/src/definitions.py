@@ -70,7 +70,7 @@ def glowing_text(text, font, text_color, outline_color, outline_width):
 # ------ Window Blit ------
 def blit_surface(surface: pygame.surface.Surface):
     scaled_surface = pygame.transform.scale(surface, (int(GAME_WIDTH * screen.scale), int(GAME_HEIGHT * screen.scale)))
-    screen.window.blit(scaled_surface, (screen.offset_x, screen.offset_y))
+    screen.screen.blit(scaled_surface, (screen.offset_x, screen.offset_y))
     pygame.display.flip()             
 
 # ------ Esc Menu ------

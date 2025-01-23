@@ -3,12 +3,11 @@ pygame.init()
 pygame.font.init()
 
 # ====== Global Variables ======
-from src.variables import GAME_WIDTH, GAME_HEIGHT
+from src.variables import GAME_TITLE
+from src.variables import GAME_WIDTH, GAME_HEIGHT, MIN_WINDOW_SIZE, MONITOR_SIZE, RESOLUTION_SCALE
+from src.variables import BASE_SURFACE, TRANSPARENT_SURFACE
 
-MIN_WINDOW_WIDTH = 854
-MIN_WINDOW_HEIGHT = 480
-FPS = 60
-GAME_TITLE = "OBLIVION DUNGEON"
+# ====== Definitions ======
 
 # ====== Class Screen ======
 class Screen:
@@ -16,57 +15,77 @@ class Screen:
         self.fullscreen = True
         self.maximized = False
 
-        self.screen_width = pygame.display.Info().current_w
-        self.screen_height = pygame.display.Info().current_h
+        self.fullscreen_height = MONITOR_SIZE[1]
 
-        self.fullscreen_scale = min(self.screen_width / GAME_WIDTH, self.screen_height / GAME_HEIGHT)
+        self.fullscreen_scale = min(MONITOR_SIZE[0] / GAME_WIDTH, self.fullscreen_height / GAME_HEIGHT)
         self.window_scale = 0.5
         self.scale = self.fullscreen_scale
 
         self.window_width = self.window_scale * GAME_WIDTH
         self.window_height = self.window_scale * GAME_HEIGHT
 
-        self.size = (self.screen_width, self.screen_height)
+        self.size = (MONITOR_SIZE[0], self.fullscreen_height)
 
-        self.offset_x = (self.screen_width - GAME_WIDTH * self.scale) // 2
-        self.offset_y = (self.screen_height - GAME_HEIGHT * self.scale) // 2
+        self.offset_x = (MONITOR_SIZE[0] - GAME_WIDTH * self.scale) // 2
+        self.offset_y = (self.fullscreen_height - GAME_HEIGHT * self.scale) // 2
 
         mouse_pos = pygame.mouse.get_pos()
         self.mouse_pos = ((mouse_pos[0] - self.offset_x) / self.scale, (mouse_pos[1] - self.offset_y) / self.scale)
 
-        self.window = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+        self.screen = pygame.display.set_mode((MONITOR_SIZE[0], self.fullscreen_height), pygame.FULLSCREEN)
         pygame.display.set_caption(GAME_TITLE)
 
     def get_mouse(self):
         mouse_pos = pygame.mouse.get_pos()
-        mouse_pos = ((mouse_pos[0] - self.offset_x) / self.scale, (mouse_pos[1] - self.offset_y) / self.scale)        
+        mouse_pos = ((mouse_pos[0] - self.offset_x) / self.scale,
+                     (mouse_pos[1] - self.offset_y) / self.scale)        
         return mouse_pos
+    
+    def resize_surfaces(self):
+        global GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE, TRANSPARENT_SURFACE, RESOLUTION_SCALE
+
+        GAME_WIDTH, GAME_HEIGHT = self.scale * GAME_WIDTH, self.scale * GAME_HEIGHT
+        RESOLUTION_SCALE = GAME_HEIGHT / 1080
+
+        BASE_SURFACE = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
+        TRANSPARENT_SURFACE = pygame.Surface((GAME_WIDTH, GAME_HEIGHT), pygame.SRCALPHA)
+        if self.fullscreen:
+            self.screen = pygame.display.set_mode((MONITOR_SIZE[0], self.fullscreen_height), pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode((self.window_width, self.window_height))
+
+        print(f"Game resized: ({GAME_WIDTH},{GAME_HEIGHT})")
+
+        return None
 
     def toggle_fullscreen(self):
+        global GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE, RESOLUTION_SCALE
         mouse_pos = pygame.mouse.get_pos()
+
         if self.fullscreen:
+
             self.fullscreen = False
-            # ------ Atualizando Variáveis Internas
-            self.scale = self.window_scale
+            # ------ Atualizando Variáveis Internas 
+            self.scale = self.window_scale 
             self.offset_x = (self.window_width - GAME_WIDTH * self.scale) // 2
             self.offset_y = (self.window_height - GAME_HEIGHT * self.scale) // 2
             self.size = (self.window_width, self.window_height)
             self.mouse_pos = ((mouse_pos[0] - self.offset_x) / self.scale, (mouse_pos[1] - self.offset_y) / self.scale)
 
-            # ------ Set Mode ------
-            self.window = pygame.display.set_mode((self.window_width, self.window_height), pygame.RESIZABLE)
+            # ------ Resize Surfaces ------
+            self.resize_surfaces()
 
         else:
             self.fullscreen = True
             # ------ Atualizando Variáveis Internas
             self.scale = self.fullscreen_scale
-            self.offset_x = (self.screen_width - GAME_WIDTH * self.scale) // 2
-            self.offset_y = (self.screen_height - GAME_HEIGHT * self.scale) // 2
-            self.size = (self.screen_width, self.screen_height)
+            self.offset_x = (MONITOR_SIZE[0] - GAME_WIDTH * self.scale) // 2
+            self.offset_y = (self.fullscreen_height - GAME_HEIGHT * self.scale) // 2
+            self.size = (MONITOR_SIZE[0], self.fullscreen_height)
             self.mouse_pos = ((mouse_pos[0] - self.offset_x) / self.scale, (mouse_pos[1] - self.offset_y) / self.scale)
 
-            # ------ Set Mode ------
-            self.window = pygame.display.set_mode((self.screen_width, self.screen_height), pygame.FULLSCREEN)
+            # ------ Resize Surfaces ------
+            self.resize_surfaces()
 
         # ------ Atualizando Tela ------
         pygame.display.flip()
@@ -79,7 +98,7 @@ class Screen:
         print(f"Maximized: {self.maximized}")
 
         # ------ Maximizando Tela ------
-        if event_width == self.screen_width and not self.fullscreen:
+        if event_width == MONITOR_SIZE[0] and not self.fullscreen:
             self.maximized = True
 
             self.window_width = event_width
@@ -100,8 +119,8 @@ class Screen:
         elif self.maximized:
             self.maximized = False
 
-            self.window_width = MIN_WINDOW_WIDTH
-            self.window_height = MIN_WINDOW_HEIGHT
+            self.window_width = MIN_WINDOW_SIZE[0]
+            self.window_height = MIN_WINDOW_SIZE[1]
             self.size = (self.window_width, self.window_height)
 
             self.window_scale = min(self.window_width / GAME_WIDTH, self.window_height / GAME_HEIGHT)
@@ -125,8 +144,8 @@ class Screen:
             self.window_height = int(proportion * self.window_height)
 
             # Checando tamanho mínimo de Tela
-            if self.window_width < MIN_WINDOW_WIDTH or self.window_height < MIN_WINDOW_HEIGHT:
-                self.window_width, self.window_height = MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
+            if self.window_width < MIN_WINDOW_SIZE[0] or self.window_height < MIN_WINDOW_SIZE[1]:
+                self.window_width, self.window_height = MIN_WINDOW_SIZE[0], MIN_WINDOW_SIZE[1]
 
             # Redefinindo Variáveis Internas
             self.size = (self.window_width, self.window_height)
@@ -141,7 +160,7 @@ class Screen:
 
             print("Normal resize")
 
-        self.window = pygame.display.set_mode((self.window_width, self.window_height), pygame.RESIZABLE)
+        self.screen = pygame.display.set_mode((self.window_width, self.window_height), pygame.RESIZABLE)
         pygame.display.flip()
         print(f"New resolution: {self.window_width}x{self.window_height}")
         print(f"Maximized: {self.maximized}\n")
