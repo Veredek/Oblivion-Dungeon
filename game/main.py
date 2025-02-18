@@ -1,15 +1,19 @@
 import pygame
 pygame.init()
 pygame.font.init()
-from src.menu import menu
-from src.new_game import new_game
 import time
 time.sleep(0.1)
 
-# ====== Global Objects ======
+# ========= Tree =========
+from src.config import config
 from src.classes import screen, game_state
+from src.menu import menu
+from src.new_game import new_game
 
-# ====== Main Function ======
+# ========== Local Variables ==========
+    # --- Left Empty ---
+
+# ========= (main) =========
 def main():
     running = True
 

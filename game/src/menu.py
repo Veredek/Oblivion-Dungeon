@@ -1,109 +1,155 @@
 import pygame
 
-# ====== Functions ======
-from src.definitions import special_highlight, basic_events, blit_surface
-
-# ====== Global Objects ======
+# ========== Tree ==========
+from src.config import config
 from src.classes import screen, game_state
+from src.functions import functions, s
 from src.entities import player
 
-# ====== Global Variables ======
-from src.variables import GAME_WIDTH, GAME_HEIGHT, RESOLUTION_SCALE, BASE_SURFACE
-from src.variables import TITLE_FONT, TEXT_FONT, PADDING
+# ========== Local Variables ==========
+class Local:
+    def __init__(self):
+        pass
 
-GAME_NAME = "Oblivion Dungeon"
-GAME_NAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf", int(RESOLUTION_SCALE * 140))
-NAMEBOX_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", int(RESOLUTION_SCALE * 75))
-TEXT_HEIGHT = TITLE_FONT.size("Text Sample")[1]
-NAME_LENGTH = TITLE_FONT.size(12 * "#")[0]
+    # ~~~~~~~~~~ Properties ~~~~~~~~~~
+    @property
+    def your_name_font(self):
+        return pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", s(75))
+    
+    @property
+    def namebox_pos(self):
+        return ((config.game_width - config.name_length) / 2 - config.padding,
+                config.game_height * (5/12) - config.padding)
+    
+    @property
+    def namebox_size(self):
+        return (config.name_length + 2 * config.padding,
+                config.title_height + 2 * config.padding)
+    
+    @property
+    def gametitle_rect(self):
+        surface = config.title_font.render(config.GAME_TITLE, True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, config.game_height / 5))
+        return rect
+    
+    @property
+    def newgame_rect(self):
+        surface = config.title_font.render("New Game", True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, config.game_height / 2.4))
+        return rect
+    
+    @property
+    def load_rect(self):
+        surface = config.title_font.render("Load", True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, config.game_height / 2.4 + s(80)))
+        return rect
+    
+    @property
+    def exit_rect(self):
+        surface = config.title_font.render("Exit", True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, config.game_height / 2.4 + s(160)))
+        return rect
+    
+    @property
+    def yourname_rect(self):
+        surface = self.your_name_font.render("Your Name", True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, int(config.game_height * (4/12))))
+        return rect
+    
+    @property
+    def enter_rect(self):
+        surface = config.title_font.render("Enter", True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, int(config.game_height * (4/12)) + local.namebox_size[1] + s(140)))
+        return rect
+    
+    @property
+    def back_rect(self):
+        surface = config.title_font.render("Back", True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, int(config.game_height * (4/12)) + local.namebox_size[1] + s(220)))
+        return rect
+    
+    @property
+    def name_rect(self):
+        surface = config.text_font.render(player.name, True, "White")
+        rect = surface.get_rect(center=(config.game_width / 2, local.namebox_pos[1] + local.namebox_size[1] / 2))
+        return rect
+    
+local = Local()
 
-NAMEBOX_POS = ((GAME_WIDTH - NAME_LENGTH) // 2 - PADDING,
-               int(GAME_HEIGHT * (5/12)) - PADDING)
-NAMEBOX_SIZE = (NAME_LENGTH + 2 * PADDING,
-                TEXT_HEIGHT + 2 * PADDING)
+# ========== Functions ==========
 
-# ====== Menu ======
+# ========== (menu) ==========
 def menu():
+    clock = pygame.time.Clock()
+    
     running = True
     while running:
         if game_state.state != "MENU": break
-        # ------ Clear Base Surface ------
-        BASE_SURFACE.fill(0)
+        # ----|1|---- Clear Surfaces ----|1|----
+        screen.clear_surfaces()
 
-        # ------ Loop Variables ------
-        mouse_pos = screen.get_mouse()
+        # ----|1|---- Loop Variables ----|1|----
+        mouse_pos = pygame.mouse.get_pos()
 
-        # ====== Menu Screen ======
+        # ----|1|---- Menu Screen ----|1|----
         if game_state.ongame_state == "menu":
-            # ------ Texts ------
-            gamename_text = GAME_NAME_FONT.render(GAME_NAME, True, "White")
-            newgame_text = TITLE_FONT.render("New Game", True, "White")
-            loadgame_text = TITLE_FONT.render("Load", True, "White")
-            exit_text = TITLE_FONT.render("Exit", True, "White")
 
-            # ------ Rectangles ------
-            gamename_text_rect = gamename_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 5))
-            newgame_text_rect = newgame_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4))
-            loadgame_text_rect = loadgame_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4 + int(RESOLUTION_SCALE * 80)))
-            exit_text_rect = exit_text.get_rect(center=(GAME_WIDTH // 2, GAME_HEIGHT // 2.4 + int(RESOLUTION_SCALE * 160)))
-
-            # ------ Base Surface Blit ------
-            BASE_SURFACE.blit(gamename_text, gamename_text_rect)
-            special_highlight(BASE_SURFACE, TITLE_FONT, "New Game", newgame_text_rect)
-            special_highlight(BASE_SURFACE, TITLE_FONT, "Load", loadgame_text_rect)
-            special_highlight(BASE_SURFACE, TITLE_FONT, "Exit", exit_text_rect)
-
-        # ====== Your Name Screen ======
+            # ----|2|---- Blit Text on Base Surface ----|2|----
+            functions.text_on_base_surface(config.GAME_TITLE, config.gamename_font,
+                                           center=local.gametitle_rect.center)
+            functions.text_on_base_surface("New Game", config.title_font, h_button=True,
+                                           center=local.newgame_rect.center)
+            functions.text_on_base_surface("Load", config.title_font, h_button=True,
+                                           center=local.load_rect.center)
+            functions.text_on_base_surface("Exit", config.title_font, h_button=True,
+                                           center=local.exit_rect.center)
+            
+        # ----|1|---- Your Name Screen ----|1|----
         elif game_state.ongame_state == "your name":
-            # ------ Name Box Blit ------
-            pygame.draw.rect(BASE_SURFACE, "White", (NAMEBOX_POS[0], NAMEBOX_POS[1], NAMEBOX_SIZE[0], NAMEBOX_SIZE[1]), 3, 10)
+            # ----|2|---- Name Box Blit ----|2|----
+            pygame.draw.rect(screen.base_surface, "White", (local.namebox_pos[0], local.namebox_pos[1], local.namebox_size[0], local.namebox_size[1]), s(3), s(10))
 
-            # ------ Texts ------
-            your_name_font = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", int(RESOLUTION_SCALE * 75))
+            # ----|2|---- Blit Text on Base Surface ----|2|----
+            functions.text_on_base_surface("Your Name", local.your_name_font,
+                                           center=local.yourname_rect.center)
+            functions.text_on_base_surface("Enter", config.title_font, h_button=True,
+                                           center=local.enter_rect.center)
+            functions.text_on_base_surface("Back", config.title_font, h_button=True,
+                                           center=local.back_rect.center)
+            functions.text_on_base_surface(player.name, local.your_name_font,
+                                           center=local.name_rect.center)
 
-            your_name_text = your_name_font.render("Your Name", True, "White")
-            enter_text = TITLE_FONT.render("Enter", True, "White")
-            back_text = TITLE_FONT.render("Back", True, "White")
-            player_name_surface = TEXT_FONT.render(player.name, True, "White")
+        # ----|1|---- Display Blit ----|1|----
+        screen.blit_surface(screen.base_surface)
 
-            # ------ Rectangles ------
-            your_name_text_rect = your_name_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12))))
-            enter_text_rect = enter_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12)) + NAMEBOX_SIZE[1] + 140))
-            back_text_rect = back_text.get_rect(center=(GAME_WIDTH // 2, int(GAME_HEIGHT * (4/12)) + NAMEBOX_SIZE[1] + 220))
-            player_name_rect = player_name_surface.get_rect(center=(GAME_WIDTH // 2, NAMEBOX_POS[1] + NAMEBOX_SIZE[1] // 2))
-
-            # ------ Base Surface Blit ------
-            BASE_SURFACE.blit(your_name_text, your_name_text_rect)
-            special_highlight(BASE_SURFACE, TITLE_FONT, "Enter", enter_text_rect)
-            special_highlight(BASE_SURFACE, TITLE_FONT, "Back", back_text_rect)
-            BASE_SURFACE.blit(player_name_surface, player_name_rect)
-
-        # ------ Window Blit ------
-        blit_surface(BASE_SURFACE)
-
-        # ------ Detecting Events ------
+        # ----|1|---- Detecting Events ----|1|----
         for event in pygame.event.get():
-            basic_events(event)
+            functions.basic_events(event)
 
-            # LEFT CLICK
+            # ----|2|---- Mouse Button ----|2|----
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if game_state.ongame_state == "menu":
-                    if newgame_text_rect.collidepoint(mouse_pos):
-                        game_state.ongame_state = "your name"
+                # ----|3|---- Left Click ----|3|----
+                if event.button == 1:
+                    # ----|4|---- MENU ----|4|----
+                    if game_state.ongame_state == "menu":
+                        if local.newgame_rect.collidepoint(mouse_pos):
+                            game_state.ongame_state = "your name"
 
-                    elif loadgame_text_rect.collidepoint(mouse_pos):
-                        game_state.ongame_state = "load"
+                        elif local.load_rect.collidepoint(mouse_pos):
+                            game_state.ongame_state = "load"
 
-                    elif exit_text_rect.collidepoint(mouse_pos):
-                        game_state.state = "EXIT GAME"
+                        elif local.exit_rect.collidepoint(mouse_pos):
+                            game_state.state = "EXIT GAME"
 
-                elif game_state.ongame_state == "your name":
-                    if enter_text_rect.collidepoint(mouse_pos) and player.name != "":
-                        game_state.state = "NEW GAME"
+                    # ----|4|---- YOUR NAME ----|4|----
+                    elif game_state.ongame_state == "your name":
+                        if local.enter_rect.collidepoint(mouse_pos) and player.name != "":
+                            game_state.state = "NEW GAME"
+                            print("-> New Game <-")
 
-                    elif back_text_rect.collidepoint(mouse_pos):
-                        player.name = ""
-                        game_state.ongame_state = "menu"
+                        elif local.back_rect.collidepoint(mouse_pos):
+                            player.name = ""
+                            game_state.ongame_state = "menu"
             
             # KEYDOWN
             elif event.type == pygame.KEYDOWN:
@@ -113,13 +159,17 @@ def menu():
                         player.name = player.name[:-1]
                     elif event.key == pygame.K_RETURN and len(player.name) > 0:
                         game_state.state = "NEW GAME"
+                        print("-> New Game <-")
                     else:
                         char = event.unicode
-                        name_len = TITLE_FONT.size(player.name)[0]
-                        if name_len < NAME_LENGTH:
+                        name_len = config.title_font.size(player.name)[0]
+                        if name_len < config.name_length:
                             player.name += char
 
-        # ------ Exit ------
+        # ----|1|---- Exit ----|1|----
         if game_state.state != "MENU": break
+    
+        # ----|1|---- Clock ----|1|----
+        clock.tick(60)
 
     return None

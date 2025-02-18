@@ -1,2 +1,1 @@
-import pygame
-pygame.init()
+print(3 // 3.4)

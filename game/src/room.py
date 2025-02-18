@@ -1,24 +1,20 @@
 import pygame
 import time
 
-from src.Boxes import boxes
-from src.skills import SKILLS
-
-# ====== Global Objects ======
+# ========== Tree ==========
+from src.config import config
 from src.classes import screen, game_state
-from src.entities import player
-from src.entities import slime
+from src.functions import functions
+from src.boxes import boxes
+from src.skills import SKILLS
+from src.entities import player, slime, Entity
 
 # ====== Global Variables ======
-from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE, TRANSPARENT_SURFACE
-from src.variables import TITLE_FONT, TEXT_FONT
-from src.variables import MAIN_BOX_POS, MAIN_BOX_SIZE
-from src.variables import ENEMY_CENTER
+attack_text_rect_center = (config.main_box_pos[0] + (1/5)*config.main_box_size[0],
+                            config.main_box_pos[1] + (1/2)*config.main_box_size[1])
 
-# ====== Definitions ======
-from src.definitions import basic_events, blit_surface
-
-def flash_enemy(enemy):
+# ========== Functions ==========
+def flash_enemy(enemy : Entity):
     clock = pygame.time.Clock()
     image = enemy.image()
     flashed = image.copy()
@@ -29,34 +25,36 @@ def flash_enemy(enemy):
     flashing = True
     timer = time.time()
     while flashing:
+        # ----|1|---- Clear Surfaces ----|1|----
+        screen.clear_surfaces()
+
+        # ----|1|---- Elapsed Time ----|1|----
         elapsed = time.time() - timer
 
-        # ------ Flash Frames ------
+        # ----|1|---- Flash Frames ----|1|----
         if int(elapsed * 20) % 2 == 0:
             enemy_display = flashed
         else:
             enemy_display = image
 
-        # ------ Window Blit ------
-        BASE_SURFACE.fill(0)
+        # ----|1|---- Window Blit ----|1|----
         boxes.draw_mainbox()
 
-        enemy_display_rect = enemy_display.get_rect(center=ENEMY_CENTER)
-        BASE_SURFACE.blit(enemy_display, enemy_display_rect)
-        blit_surface(BASE_SURFACE)
+        enemy_display_rect = enemy_display.get_rect(center=config.enemy_center)
+        screen.base_surface.blit(enemy_display, enemy_display_rect)
+        screen.blit_surface(screen.base_surface)
 
-        # ------ Stop ------
+        # ----|1|---- Stop ----|1|----
         if elapsed > 0.5:
             flashing = False
     
-        # ------ FPS ------
+        # ----|1|---- Tick FPS ----|1|----
         clock.tick(60)
 
-# ====== Class Enemy Room ======
+# ========== (room) ==========
 class Room:
     def __init__(self):
-        self.attack_text_rect = TITLE_FONT.render("Attack", True, 0).get_rect(center=(MAIN_BOX_POS[0] + (1/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
-
+        self.attack_text_rect = config.title_font.render("Attack", True, 0).get_rect(center=attack_text_rect_center)
 
     def enemy_room(self):
         clock = pygame.time.Clock()
@@ -66,35 +64,41 @@ class Room:
         running = True
         while running:
             if game_state.ongame_state != "room": break
-            # ------ Loop Variables ------
+            # ----|1|---- Clear Surfaces ----|1|----
+            screen.clear_surfaces
+
+            # ----|1|---- Loop Variables ----|1|----
             mouse_pos = screen.get_mouse()          
 
-            # ------ Screen ------
-            BASE_SURFACE.fill(0)
+            # ----|1|---- Base Surface Blit ----|1|----
             enemy.blit()
 
             if my_turn:
                 mouse_over = boxes.fight_box()
 
-            # ------ Window Blit ------
-            if game_state.ongame_state == "room": blit_surface(BASE_SURFACE)
+            # ----|1|---- Display Blit ----|1|----
+            if game_state.ongame_state == "room": screen.blit_surface(screen.base_surface)
 
-            # ------ Detectando Eventos ------
+            # ----|1|---- Event Handle ----|1|----
             for event in pygame.event.get():
-                basic_events(event)
+                functions.basic_events(event)
 
+                # ----|2|---- Mouse ----|2|----
                 if event.type == pygame.MOUSEBUTTONDOWN:
-                    if mouse_over == "attack":
-                        skill = SKILLS["attack"]()
-                        skill.activate(player, enemy)
-                        flash_enemy(enemy)
-                        print(enemy.stats["HP"])
+
+                    # ----|3|---- Left Click ----|3|----
+                    if event.button == 1:
+                        if mouse_over == "attack":
+                            skill = SKILLS["attack"]()
+                            skill.activate(player, enemy)
+                            flash_enemy(enemy)
+                            print(enemy.stats["HP"])
                     # ------ Escape ------
 
-            # ------ FPS ------
-            clock.tick(60)
-
-            # ------ Exit ------
+            # ----|1|---- Exit ----|1|----
             if game_state.ongame_state != "room": break
+
+            # ----|1|---- Tick FPS ----|1|----
+            clock.tick(60)
 
         return None

@@ -1,14 +1,16 @@
 # ====== modified ======
-(solved) inventory drawmainbox error 
-dynamic game resolution (fit to screen)
+- variables -> config
+- now config is a class
+- the base surface is now the same size as the display
+- game display adjusts to system scale
+- game detects with monitor the window is opened
 
 # ====== working ======
 adjusting all game surface blit to fit different resolutions
 
 # ====== to modify ======
-ajustar variables.py
+ajustar variables.py para uma classe
 
 # ====== latest modications ======
-enemy image path is now relative path
-skills (physical) added: multicast, scale
-added file: cache_remove
+(solved) inventory drawmainbox error 
+dynamic game resolution (fit to screen)

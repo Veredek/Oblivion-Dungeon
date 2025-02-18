@@ -1,6 +1,8 @@
 import pygame
-import math
-from src.definitions import physical_dmg
+
+# ========== Tree ==========
+from src.functions import functions
+
 # ------ Class Skills ------
 class Skill:
     def __init__(self, name, type, multicast = 1, scale = 1, condition=None):
@@ -18,7 +20,7 @@ class Skill:
         if self.type == "physical":
             damage = 0
             for cast in range(self.multicast):
-                damage += physical_dmg(caster, target, self.scale)
+                damage += functions.physical_dmg(caster, target, self.scale)
             target.stats["HP"] -= damage
 
 # ------ Skills List ------

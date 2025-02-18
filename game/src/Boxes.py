@@ -1,43 +1,80 @@
 import pygame
 import time
 
-# ====== Global Objects ======
+# ========== Tree ==========
+from src.config import config
 from src.classes import screen, game_state
+from src.functions import functions, s
 
 # ====== Global Variables ======
-from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE
-from src.variables import TITLE_FONT, TEXT_FONT, PADDING
-from src.variables import TITLE_HEIGHT, TEXT_HEIGHT
-from src.variables import TYPING_SPEED
-from src.variables import MAIN_BOX_SIZE, MAIN_BOX_POS
 
-MINOR_BOX_DISTANCE = 0.5 * (GAME_HEIGHT - MAIN_BOX_POS[1] - MAIN_BOX_SIZE[1])
-MINOR_BOX_SIZE = ((MAIN_BOX_SIZE[0] - 2 * MINOR_BOX_DISTANCE) // 3, GAME_HEIGHT - MAIN_BOX_SIZE[1] - 4 * MINOR_BOX_DISTANCE)
-MINOR_BOX_TITLE_HEIGHT = MINOR_BOX_DISTANCE + 1.5 * TITLE_HEIGHT + PADDING
+# ========== Functions ==========
 
-INVENTORY_POS = (MAIN_BOX_POS[0], MINOR_BOX_DISTANCE)
-EQUIPS_POS = (MAIN_BOX_POS[0] + MINOR_BOX_SIZE[0] + MINOR_BOX_DISTANCE, MINOR_BOX_DISTANCE)
-STATS_POS = (MAIN_BOX_POS[0] + 2 * MINOR_BOX_SIZE[0] + 2 * MINOR_BOX_DISTANCE, MINOR_BOX_DISTANCE)
-
-# ====== Definitions ======
-from src.definitions import special_highlight
-
-# ====== Class Main Box ======
+# ========== (boxes) ==========
 class Boxes:
-    def __init__(self, pos = (MAIN_BOX_POS[0], MAIN_BOX_POS[1]), size = (MAIN_BOX_SIZE[0], MAIN_BOX_SIZE[1])):
+    # ~~~~~~~~~~ Init ~~~~~~~~~~
+    def __init__(self):
         self.time = time.time()
-        self.width = size[0]
-        self.height = size[1]
-        self.x = pos[0]
-        self.y = pos[1]
         self.skip_text = False
         self.waiting = False
 
-    def draw_mainbox(self):
-        pygame.draw.rect(BASE_SURFACE, (0, 0, 0), (self.x, self.y, self.width, self.height))
-        pygame.draw.rect(BASE_SURFACE, "White", (self.x, self.y, self.width, self.height), 3, 10)
+    # ~~~~~~~~~~ Properties ~~~~~~~~~~
+    @property
+    def main_x(self):
+        return config.main_box_pos[0]
+    
+    @property
+    def main_y(self):
+        return config.main_box_pos[1]
 
-    # ------ Função para simular a digitação do texto ------
+    @property
+    def main_w(self):
+        return config.main_box_size[0]
+    
+    @property
+    def main_h(self):
+        return config.main_box_size[1]
+    
+    @property
+    def minorbox_spacer(self): # Spacer between minor boxes
+        spacer = 0.5 * (config.game_height - self.main_y - self.main_h)
+        return spacer
+    
+    @property
+    def minorbox_size(self):
+        w = (self.main_w - 2 * self.minorbox_spacer) // 3
+        h = config.game_height - config.main_box_size[1] - 4 * self.minorbox_spacer
+        return (w, h)
+    
+    @property
+    def minorbox_title_height(self):
+        return self.minorbox_spacer + 1.5 * config.title_height + config.padding
+    
+    #----|1|---- Position ----|1|----
+    @property
+    def inventory_pos(self):
+        x = self.main_x
+        y = self.minorbox_spacer
+        return (x, y)
+    
+    @property
+    def equips_pos(self):
+        x = self.main_x + self.minorbox_size[0] + self.minorbox_spacer
+        y = self.minorbox_spacer
+        return (x, y)
+    
+    @property
+    def stats_pos(self):
+        x = self.main_x + 2 * self.minorbox_size[0] + 2 * self.minorbox_spacer
+        y = self.minorbox_spacer
+        return (x, y)
+    
+    # ~~~~~~~~~~ Functions ~~~~~~~~~~
+    def draw_mainbox(self):
+        pygame.draw.rect(screen.base_surface, (0, 0, 0), (self.main_x, self.main_y, self.main_w, self.main_h))
+        pygame.draw.rect(screen.base_surface, "White", (self.main_x, self.main_y, self.main_w, self.main_h), s(3), s(10))
+
+    # ----|1|---- Text Part to Show ----|1|----
     def type_text(self, full_text, speed):
         if self.skip_text:
             return full_text
@@ -46,10 +83,10 @@ class Boxes:
             chars_to_show = int(elapsed_time * speed)
             return full_text[:chars_to_show]
 
-    # ------ Draw Text ------
-    def draw_text(self, surface, script, speed=TYPING_SPEED):
+    # ----|1|---- Draw Text ----|1|----
+    def draw_text(self, script, surface=screen.base_surface, speed=config.TYPING_SPEED):
         text = script.script()
-        font = TEXT_FONT
+        font = config.text_font
         current_text = self.type_text(text,speed)
         if current_text == text:
             self.waiting = True
@@ -59,7 +96,7 @@ class Boxes:
 
         # Ajusta o texto
         for word in words:
-            if font.size(current_line + word)[0] > (self.width - PADDING):
+            if font.size(current_line + word)[0] > (self.main_w - config.padding):
                 lines.append(current_line)
                 current_line = word + " "
             else:
@@ -73,13 +110,13 @@ class Boxes:
         # Renderiza o texto linha por linha
         for i, line in enumerate(lines):
             text_surface = font.render(line.strip(), True, "White")
-            surface.blit(text_surface, (self.x + PADDING, self.y + PADDING + i * TEXT_HEIGHT))
+            surface.blit(text_surface, (self.main_x + config.padding, self.main_y + config.padding + i * config.text_height))
 
     # ------ After Box ------
     def after_box(self, surface):
-        mouse_pos = screen.get_mouse()
+        mouse_pos = pygame.mouse.get_pos()
         # ------ Local Variables ------
-        font = TITLE_FONT
+        font = config.title_font
 
         # ------ Clear Box ------
         self.draw_mainbox()
@@ -89,41 +126,41 @@ class Boxes:
         inventory_text = font.render("Inventory", True, "White")
 
         # ------ Rectangles ------
-        proceed_text_rect = proceed_text.get_rect(center=(int(GAME_WIDTH * (1/3)), self.y + self.height // 2))
-        inventory_text_rect = inventory_text.get_rect(center=(int(GAME_WIDTH * (2/3)), self.y + self.height // 2))
+        proceed_text_rect = proceed_text.get_rect(center=(int(config.game_width * (1/3)), self.main_y + self.main_h // 2))
+        inventory_text_rect = inventory_text.get_rect(center=(int(config.game_width * (2/3)), self.main_y + self.main_h // 2))
 
         # ------ Base Surface Blit ------
-        special_highlight(surface, font, "Proceed", proceed_text_rect)
-        special_highlight(surface, font, "Inventory", inventory_text_rect)
+        functions.highlight_button(surface, font, "Proceed", proceed_text_rect)
+        functions.highlight_button(surface, font, "Inventory", inventory_text_rect)
 
         # ------ Click ------
         if inventory_text_rect.collidepoint(mouse_pos): return "inventory"
         elif proceed_text_rect.collidepoint(mouse_pos): return "proceed"
 
     def inventory_box(self, surface):
-        pygame.draw.rect(surface, "White", (INVENTORY_POS[0], INVENTORY_POS[1], MINOR_BOX_SIZE[0], MINOR_BOX_SIZE[1]), 3, 10)
-        inventory_text = TITLE_FONT.render("Inventory", True, "White")
-        inventory_text_rect = inventory_text.get_rect(center=(INVENTORY_POS[0] + MINOR_BOX_SIZE[0] // 2, INVENTORY_POS[1] + TITLE_FONT.size("Text Sample")[1]))
+        pygame.draw.rect(surface, "White", (self.inventory_pos[0], self.inventory_pos[1], self.minorbox_size[0], self.minorbox_size[1]), 3, 10)
+        inventory_text = config.title_font.render("Inventory", True, "White")
+        inventory_text_rect = inventory_text.get_rect(center=(self.inventory_pos[0] + self.minorbox_size[0] // 2, self.inventory_pos[1] + config.title_font.size("Text Sample")[1]))
         surface.blit(inventory_text, inventory_text_rect)
-        pygame.draw.line(surface, "White", (INVENTORY_POS[0], MINOR_BOX_TITLE_HEIGHT), (INVENTORY_POS[0] + MINOR_BOX_SIZE[0] - 3, MINOR_BOX_TITLE_HEIGHT), 3)
+        pygame.draw.line(surface, "White", (self.inventory_pos[0], self.minorbox_title_height), (self.inventory_pos[0] + self.minorbox_size[0] - 3, self.minorbox_title_height), 3)
 
     def equips_box(self, surface):
-        pygame.draw.rect(surface, "White", (EQUIPS_POS[0], EQUIPS_POS[1], MINOR_BOX_SIZE[0], MINOR_BOX_SIZE[1]), 3, 10)
-        equips_text = TITLE_FONT.render("Equips", True, "White")
-        equips_text_rect = equips_text.get_rect(center=(EQUIPS_POS[0] + MINOR_BOX_SIZE[0] // 2, EQUIPS_POS[1] + TITLE_FONT.size("Text Sample")[1]))
+        pygame.draw.rect(surface, "White", (self.equips_pos[0], self.equips_pos[1], self.minorbox_size[0], self.minorbox_size[1]), 3, 10)
+        equips_text = config.title_font.render("Equips", True, "White")
+        equips_text_rect = equips_text.get_rect(center=(self.equips_pos[0] + self.minorbox_size[0] // 2, self.equips_pos[1] + config.text_height))
         surface.blit(equips_text, equips_text_rect)
-        pygame.draw.line(surface, "White", (EQUIPS_POS[0], EQUIPS_POS[1] + 1.5 * TITLE_HEIGHT + PADDING), (EQUIPS_POS[0] + MINOR_BOX_SIZE[0] - 3, EQUIPS_POS[1] + 1.5 * TITLE_HEIGHT + PADDING), 3)
+        pygame.draw.line(surface, "White", (self.equips_pos[0], self.equips_pos[1] + 1.5 * config.title_height + config.padding), (self.equips_pos[0] + self.minorbox_size[0] - 3, self.equips_pos[1] + 1.5 * config.title_height + config.padding), 3)
 
     def stats_box(self, surface):
-        pygame.draw.rect(surface, "White", (STATS_POS[0], STATS_POS[1], MINOR_BOX_SIZE[0], MINOR_BOX_SIZE[1]), 3, 10)
-        stats_text = TITLE_FONT.render("Stats", True, "White")
-        stats_text_rect = stats_text.get_rect(center=(STATS_POS[0] + MINOR_BOX_SIZE[0] // 2, STATS_POS[1] + TITLE_FONT.size("Text Sample")[1]))
+        pygame.draw.rect(surface, "White", (self.stats_pos[0], self.stats_pos[1], self.minorbox_size[0], self.minorbox_size[1]), 3, 10)
+        stats_text = config.title_font.render("Stats", True, "White")
+        stats_text_rect = stats_text.get_rect(center=(self.stats_pos[0] + self.minorbox_size[0] // 2, self.stats_pos[1] + config.text_height))
         surface.blit(stats_text, stats_text_rect)
-        pygame.draw.line(surface, "White", (STATS_POS[0], STATS_POS[1] + 1.5 * TITLE_HEIGHT + PADDING), (STATS_POS[0] + MINOR_BOX_SIZE[0] - 3, STATS_POS[1] + 1.5 * TITLE_HEIGHT + PADDING), 3)
+        pygame.draw.line(surface, "White", (self.stats_pos[0], self.stats_pos[1] + 1.5 * config.title_height + config.padding), (self.stats_pos[0] + self.minorbox_size[0] - 3, self.stats_pos[1] + 1.5 * config.title_height + config.padding), 3)
 
     def fight_box(self):
         # ------ Local Variables ------
-        font = TITLE_FONT
+        font = config.title_font
         mouse_pos = screen.get_mouse()
 
         # ------ Clear Box ------
@@ -136,16 +173,16 @@ class Boxes:
         escape_text = font.render("Escape", True, 0)
 
         # ------ Rectangles ------
-        attack_text_rect = attack_text.get_rect(center=(MAIN_BOX_POS[0] + (1/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
-        skill_text_rect = skill_text.get_rect(center=(MAIN_BOX_POS[0] + (2/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
-        defend_text_rect = defend_text.get_rect(center=(MAIN_BOX_POS[0] + (3/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
-        escape_text_rect = escape_text.get_rect(center=(MAIN_BOX_POS[0] + (4/5)*MAIN_BOX_SIZE[0], MAIN_BOX_POS[1] + (1/2)*MAIN_BOX_SIZE[1]))
+        attack_text_rect = attack_text.get_rect(center=(config.main_box_pos[0] + (1/5)*config.main_box_size[0], config.main_box_pos[1] + (1/2)*config.main_box_size[1]))
+        skill_text_rect = skill_text.get_rect(center=(config.main_box_pos[0] + (2/5)*config.main_box_size[0], config.main_box_pos[1] + (1/2)*config.main_box_size[1]))
+        defend_text_rect = defend_text.get_rect(center=(config.main_box_pos[0] + (3/5)*config.main_box_size[0], config.main_box_pos[1] + (1/2)*config.main_box_size[1]))
+        escape_text_rect = escape_text.get_rect(center=(config.main_box_pos[0] + (4/5)*config.main_box_size[0], config.main_box_pos[1] + (1/2)*config.main_box_size[1]))
 
         # ------ Base Surface Blit ------
-        special_highlight(BASE_SURFACE, font, "Attack", attack_text_rect)
-        special_highlight(BASE_SURFACE, font, "Skills", skill_text_rect)
-        special_highlight(BASE_SURFACE, font, "Defend", defend_text_rect)
-        special_highlight(BASE_SURFACE, font, "Escape", escape_text_rect)
+        functions.highlight_button(screen.base_surface, font, "Attack", attack_text_rect)
+        functions.highlight_button(screen.base_surface, font, "Skills", skill_text_rect)
+        functions.highlight_button(screen.base_surface, font, "Defend", defend_text_rect)
+        functions.highlight_button(screen.base_surface, font, "Escape", escape_text_rect)
 
         # ------ Mouse Over ------
         if attack_text_rect.collidepoint(mouse_pos): return "attack"
@@ -153,5 +190,5 @@ class Boxes:
         elif defend_text_rect.collidepoint(mouse_pos): return "defend"
         elif escape_text_rect.collidepoint(mouse_pos): return "escape"
         
-# ====== Init ======
+# ========== Init ==========
 boxes = Boxes()

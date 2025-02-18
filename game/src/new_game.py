@@ -1,36 +1,36 @@
 import pygame
 import time
-from src.Boxes import Boxes
-from assets.dialogues.script import Script
-from src.inventory import Inventory
-from src.room import Room
-# ====== Global Objects ======
+
+# ========== Tree ==========
+from src.config import config
 from src.classes import screen, game_state
+from src.functions import functions, s
+
+from src.boxes import boxes
 from src.entities import player
+from src.inventory import inventory
+from src.room import Room
+from assets.dialogues.script import Script
 
-# ====== Global Variables ======
-from src.variables import GAME_WIDTH, GAME_HEIGHT, BASE_SURFACE
+# ========== Local Variables ==========
 
-# ====== Definitions =======
-from src.definitions import basic_events, blit_surface
+# ========== Functions ==========
 
-# ====== Código Principal ======
+# ====== (new_game) ======
 def new_game():
     clock = pygame.time.Clock()
     start_time = time.time()
-    boxes = Boxes()
     script = Script()
-    inventory = Inventory()
     room = Room()
     game_state.ongame_state = "text"
 
     running = True
     while running:
-        if game_state.state != "NEW GAME": break
-        BASE_SURFACE.fill(0)
+        # ~~~~~~~~~~ Clear Surfaces ~~~~~~~~~~
+        screen.clear_surfaces()
 
         # ------ Definindo Variáveis ------
-        mouse_pos = screen.get_mouse()
+        mouse_pos = pygame.mouse.get_pos()
         elapsed_time = (time.time() - start_time)
 
         # ------ Verify Script ------
@@ -48,21 +48,20 @@ def new_game():
                 inventory.inventory(player)
             else:
                 game_state.ongame_state = "after"
-                after_mouse_over = boxes.after_box(BASE_SURFACE)
+                after_mouse_over = boxes.after_box(screen.base_surface)
                 
         # ------ Text ------
         else:
             game_state.ongame_state = "text"
-            boxes.draw_text(BASE_SURFACE,script)
+            boxes.draw_text(script)
 
         # ------ Window Blit ------
-        if game_state.state == "NEW GAME" : blit_surface(BASE_SURFACE)
+        if game_state.state == "NEW GAME" : screen.blit_surface(screen.base_surface)
 
-        clock.tick(60)
 
         # ------ Detectando Eventos ------
         for event in pygame.event.get():
-            basic_events(event)
+            functions.basic_events(event)
 
             # Detecta Click Esquerdo do Mouse
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -74,11 +73,12 @@ def new_game():
             
             # ------ Keydown ------
             elif event.type == pygame.KEYDOWN:
+                print("*Keydown*")
                 if event.key == pygame.K_RETURN:
-                    print("Key: RETURN\n")
+                    print("    RETURN\n")
                     boxes.skip_text = True
                 elif event.key == pygame.K_x:
-                    print("Key: X\n")
+                    print("    X\n")
                     if boxes.waiting:
                         script.state += 1
                         boxes.waiting = False
@@ -86,8 +86,13 @@ def new_game():
                         boxes.time = time.time()
                     elif game_state.ongame_state == "text":
                         boxes.skip_text = True
+                else:
+                    print("\n")
 
-        # ------ Exit ------
+        # ----|1|---- Exit ----|1|----
         if game_state.state != "NEW GAME": break
+
+        # ----|1|---- Tick FPS ----|1|----
+        clock.tick(60)
 
     return None
