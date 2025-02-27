@@ -4,9 +4,9 @@ import time
 # ========== Tree ==========
 from src.config import config
 from src.classes import screen, game_state
-from src.functions import functions, s
+from src.functions import functions
 
-from src.boxes import boxes
+from src.Boxes import boxes
 from src.entities import player
 from src.inventory import inventory
 from src.room import Room
@@ -30,7 +30,7 @@ def new_game():
         screen.clear_surfaces()
 
         # ------ Definindo Variáveis ------
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = screen.mouse
         elapsed_time = (time.time() - start_time)
 
         # ------ Verify Script ------

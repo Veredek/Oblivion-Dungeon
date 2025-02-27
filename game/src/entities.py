@@ -63,7 +63,7 @@ class Entity:
 
     def blit(self):
         enemy_surface = self.image()
-        enemy_surface_rect = enemy_surface.get_rect(center=config.enemy_center)
+        enemy_surface_rect = enemy_surface.get_rect(center=config.ENEMY_CENTER)
         screen.base_surface.blit(enemy_surface, enemy_surface_rect)
 
     def gain_condition(self, condition_name, value):

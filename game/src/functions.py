@@ -6,28 +6,22 @@ import os
 from src.config import config
 from src.classes import screen, game_state
 
-# ========== Functions ==========
-# ~~~~~~~~~~ Scale ~~~~~~~~~~
-def s(value : int):
-    updated_value = round(config.scale * value)
-    return updated_value if updated_value > 0 else 1
-
 # ========== (functions) ==========
 class Functions:
     def __init__(self):
         pass
 
     # ~~~~~~~~~~ Highlight Button ~~~~~~~~~~
-    def highlight_button(self, surface : pygame.Surface, font : pygame.font, text : str, text_rect : pygame.Rect):
+    def highlight_button(self, surface : pygame.Surface, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
         '''
         Blit a button on given surface
         '''
 
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = screen.mouse
         
         if text_rect.collidepoint(mouse_pos):
             text_surface = font.render(text, True, "Yellow")
-            sign_surface = config.highlight_sign.render("+", True, "Yellow")
+            sign_surface = config.HIGHLIGHT_SIGN.render("+", True, "Yellow")
 
             text_size = text_surface.get_size()
             sign_size = sign_surface.get_size()
@@ -53,7 +47,7 @@ class Functions:
         Cria um texto cinza que fica branco quando colide com o mouse
         """
 
-        mouse_pos = pygame.mouse.get_pos()
+        mouse_pos = screen.mouse
 
         if text_rect.collidepoint(mouse_pos):
             highlighted_surface = font.render(text, True, "White")
@@ -90,19 +84,19 @@ class Functions:
         inside = True
         while inside:
             screen.clear_surfaces()
-            mouse_pos = pygame.mouse.get_pos()
+            mouse_pos = screen.mouse
 
             # ----|1|---- Font Surfaces ----|1|----
-            continue_text = config.title_font.render("Continue", True, "White")
-            quit_text = config.title_font.render("Quit", True, "White")
+            continue_text = config.TITLE_FONT.render("Continue", True, "White")
+            quit_text = config.TITLE_FONT.render("Quit", True, "White")
 
             # ----|1|---- Rectangles ----|1|----
             continue_text_rect = continue_text.get_rect(center=(config.game_width / 2, config.game_height / 2 - 80))
             quit_text_rect = quit_text.get_rect(center=(config.game_width / 2, config.game_height / 2 + 40))
 
             # ----|1|---- Blit Button on base_surface ----|1|----
-            self.highlight_button(screen.base_surface, config.title_font, "Continue", continue_text_rect)
-            self.highlight_button(screen.base_surface, config.title_font, "Quit", quit_text_rect)
+            self.highlight_button(screen.base_surface, config.TITLE_FONT, "Continue", continue_text_rect)
+            self.highlight_button(screen.base_surface, config.TITLE_FONT, "Quit", quit_text_rect)
 
             # ----|1|---- Display Blit ----|1|----
             screen.blit_surface(screen.base_surface)
@@ -219,5 +213,6 @@ class Functions:
 
         return damage
 
+    # ~~~~~~~~~~ Sub Title ~~~~~~~~~~
 # ====== Instaciation ======
 functions = Functions()
