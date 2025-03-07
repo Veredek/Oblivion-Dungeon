@@ -5,13 +5,13 @@ import time
 from src.config import config
 from src.classes import screen, game_state
 from src.functions import functions
-from src.boxes import boxes
+from src.Boxes import boxes
 from src.skills import SKILLS
 from src.entities import player, slime, Entity
 
 # ====== Global Variables ======
-attack_text_rect_center = (config.main_box_pos[0] + (1/5)*config.main_box_size[0],
-                            config.main_box_pos[1] + (1/2)*config.main_box_size[1])
+attack_text_rect_center = (config.MAINBOX_POS[0] + (1/5)*config.MAINBOX_SIZE[0],
+                            config.MAINBOX_POS[1] + (1/2)*config.MAINBOX_SIZE[1])
 
 # ========== Functions ==========
 def flash_enemy(enemy : Entity):
@@ -40,7 +40,7 @@ def flash_enemy(enemy : Entity):
         # ----|1|---- Window Blit ----|1|----
         boxes.draw_mainbox()
 
-        enemy_display_rect = enemy_display.get_rect(center=config.enemy_center)
+        enemy_display_rect = enemy_display.get_rect(center=config.ENEMY_CENTER)
         screen.base_surface.blit(enemy_display, enemy_display_rect)
         screen.blit_surface(screen.base_surface)
 
@@ -54,7 +54,7 @@ def flash_enemy(enemy : Entity):
 # ========== (room) ==========
 class Room:
     def __init__(self):
-        self.attack_text_rect = config.title_font.render("Attack", True, 0).get_rect(center=attack_text_rect_center)
+        self.attack_text_rect = config.TITLE_FONT.render("Attack", True, 0).get_rect(center=attack_text_rect_center)
 
     def enemy_room(self):
         clock = pygame.time.Clock()
@@ -68,13 +68,13 @@ class Room:
             screen.clear_surfaces
 
             # ----|1|---- Loop Variables ----|1|----
-            mouse_pos = screen.get_mouse()          
+            mouse_pos = screen.mouse         
 
             # ----|1|---- Base Surface Blit ----|1|----
             enemy.blit()
 
             if my_turn:
-                mouse_over = boxes.fight_box()
+                mouse_over = boxes.fight_box(mouse_pos)
 
             # ----|1|---- Display Blit ----|1|----
             if game_state.ongame_state == "room": screen.blit_surface(screen.base_surface)
