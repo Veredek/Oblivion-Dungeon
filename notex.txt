@@ -1,15 +1,11 @@
 # ====== modified ======
 - variables -> config
 - now config is a class
-- the base surface is now the same size as the display
-- game display adjusts to system scale
-- game detects with monitor the window is opened
+- game detects witch monitor the window is opened
 
 # ====== working ======
-adjusting all game surface blit to fit different resolutions
 
 # ====== to modify ======
-ajustar variables.py para uma classe
 
 # ====== latest modications ======
 (solved) inventory drawmainbox error 
