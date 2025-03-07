@@ -1,3 +1,4 @@
+# ========== Removes all cache ==========
 import os
 import shutil
 
