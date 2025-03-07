@@ -12,17 +12,19 @@ class Functions:
         pass
 
     # ~~~~~~~~~~ Highlight Button ~~~~~~~~~~
-    def highlight_button(self, surface : pygame.Surface, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
+    def highlight_button(self, mouse_pos : property, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
         '''
         Blit a button on given surface
         '''
-
-        mouse_pos = screen.mouse
         
+        surface = screen.base_surface
+
         if text_rect.collidepoint(mouse_pos):
+            # ~~~~~~~~~~ Surfaces ~~~~~~~~~~
             text_surface = font.render(text, True, "Yellow")
             sign_surface = config.HIGHLIGHT_SIGN.render("+", True, "Yellow")
 
+            # ~~~~~~~~~~ Sizes ~~~~~~~~~~
             text_size = text_surface.get_size()
             sign_size = sign_surface.get_size()
 
@@ -31,12 +33,14 @@ class Functions:
             highlighted_surface_size = (text_size[0] + 2 * sign_size[0] + 2*spacer,
                                         text_size[1])
             
+            # ~~~~~~~~~~ Blit ~~~~~~~~~~
             highlighted_surface = pygame.Surface(highlighted_surface_size)
             highlighted_surface.blit(sign_surface, (0, (text_size[1] - sign_size[1]) // 2))
             highlighted_surface.blit(text_surface, (sign_size[0] + spacer, 0))
             highlighted_surface.blit(sign_surface, (sign_size[0] + text_size[0] + 2*spacer, (text_size[1] - sign_size[1]) // 2))
 
             surface.blit(highlighted_surface, (text_rect[0] - sign_size[0] - spacer, text_rect[1]))
+
         else:
             normal_surface = font.render(text, True, "White")
             surface.blit(normal_surface, text_rect)
@@ -95,8 +99,8 @@ class Functions:
             quit_text_rect = quit_text.get_rect(center=(config.game_width / 2, config.game_height / 2 + 40))
 
             # ----|1|---- Blit Button on base_surface ----|1|----
-            self.highlight_button(screen.base_surface, config.TITLE_FONT, "Continue", continue_text_rect)
-            self.highlight_button(screen.base_surface, config.TITLE_FONT, "Quit", quit_text_rect)
+            self.highlight_button(mouse_pos, config.TITLE_FONT, "Continue", continue_text_rect)
+            self.highlight_button(mouse_pos, config.TITLE_FONT, "Quit", quit_text_rect)
 
             # ----|1|---- Display Blit ----|1|----
             screen.blit_surface(screen.base_surface)
@@ -190,6 +194,7 @@ class Functions:
     # ~~~~~~~~~~ Blit Text on Base Surface ~~~~~~~~~~
     def text_on_base_surface(self, text: str, font : pygame.font.Font, color : str = "white", topleft = False, center = False, h_button = False):
         text_surface = font.render(text, True, color)
+        mouse_pos = screen.mouse
 
         if center:
             text_rect = text_surface.get_rect(center=center)
@@ -197,7 +202,7 @@ class Functions:
             text_rect = text_surface.get_rect(topleft=topleft)
 
         if h_button:
-            self.highlight_button(screen.base_surface, font, text, text_rect)
+            self.highlight_button(mouse_pos, font, text, text_rect)
         else:
             screen.base_surface.blit(text_surface, text_rect)
 

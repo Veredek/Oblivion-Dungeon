@@ -12,8 +12,8 @@ def get_monitor_index():
             pygame.display.quit()
             return index  # Retorna o índice do monitor
 
-    # Se por acaso 
     pygame.display.quit()
+    # default
     return 0
 
 def get_monitor_scale(monitor_index : int):
@@ -132,12 +132,15 @@ class Config:
     # region ----|2|---- Width
     @property
     def game_width(self):
+        """
+        Current display width
+        """
         return self._game_width
     
     @game_width.setter
     def game_width(self, value):
         """
-        Auto updates game height, to not do so, use (value, "only")
+        Auto updates game height, to not do so, use: game_width = (value, "only")
         """
 
         flag = False # init flag
@@ -158,12 +161,15 @@ class Config:
     # region ----|2|---- Height
     @property
     def game_height(self):
+        """
+        Current display height
+        """
         return self._game_height
 
     @game_height.setter
     def game_height(self, value):
         """
-        Auto updates game width, to not do so, use (value, "only")
+        Auto updates game width, to not do so, use: game_height = (value, "only")
         """
         
         flag = False # init flag
@@ -180,8 +186,6 @@ class Config:
 
         self.display_update = True
         # endregion
-
-    # endregion
 
     # region ----|1|---- Resolution
     @property

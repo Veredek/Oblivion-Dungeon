@@ -87,7 +87,8 @@ class Screen:
 
         elif not self.fullscreen:
             # ----|2|---- Config Update ----|2|----
-            config.game_width, config.game_height = config.min_resolution
+            config.game_width = (config.min_resolution[0], "only")
+            config.game_height = (config.min_resolution[1], "only")
 
             # ----|2|---- Display Resize ----|2|----
             self.display_size = config.min_resolution
@@ -116,7 +117,8 @@ class Screen:
                 self.maximized = False
                 
                 # ----|2|---- Config Update + Display Resize ----|2|----
-                config.game_width, config.game_height = config.min_resolution
+                config.game_width = (config.min_resolution[0], "only")
+                config.game_height = (config.min_resolution[1], "only")
                 self.display_size = config.min_resolution
 
                 print("*Unmaximizing*\n")

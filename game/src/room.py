@@ -68,13 +68,13 @@ class Room:
             screen.clear_surfaces
 
             # ----|1|---- Loop Variables ----|1|----
-            mouse_pos = screen.get_mouse()          
+            mouse_pos = screen.mouse         
 
             # ----|1|---- Base Surface Blit ----|1|----
             enemy.blit()
 
             if my_turn:
-                mouse_over = boxes.fight_box()
+                mouse_over = boxes.fight_box(mouse_pos)
 
             # ----|1|---- Display Blit ----|1|----
             if game_state.ongame_state == "room": screen.blit_surface(screen.base_surface)

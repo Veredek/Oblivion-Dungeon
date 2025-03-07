@@ -33,54 +33,46 @@ class Inventory:
         self.VALUE_MAXWIDTH = self.ATTRIBUTES_FONT.render(" 000 ", True, 0).get_width()   
             # endregion
         # region ----|1|---- Size
-        def ATTRIBUTES_SIZE(self):
-            return (self.ATTRIBUTES_FONT.render(" fort  000 ", True, "white").get_width(), 5*self.ATTRIBUTES_TEXT_HEIGHT)
-
+        self.ATTRIBUTES_SIZE = (self.ATTRIBUTES_FONT.render(" fort  000 ", True, "white").get_width(),
+                                5*self.ATTRIBUTES_TEXT_HEIGHT)
             # endregion
-    # ~~~~~~~~~~ Properties ~~~~~~~~~~
-    
-    # ----|1|---- Positions ----|1|----
-    @property
-    def POS_HELMET(self):
-        return (boxes.equips_pos[0] + boxes.minorbox_size[0]/2 - self.EQUIPS_RECT_SIDE/2, boxes.equips_pos[1] + boxes.minorbox_TITLE_HEIGHT + config.PADDING)
-    @property
-    def POS_CHEST(self):
-        return (self.POS_HELMET[0], self.POS_HELMET[1] + self.EQUIPS_RECT_SIDE + 30)
-    @property
-    def POS_LEG(self):
-        return (self.POS_CHEST[0], self.POS_CHEST[1] + self.EQUIPS_RECT_SIDE + 30)
-    @property
-    def POS_BOOTS(self):
-        return (self.POS_LEG[0], self.POS_LEG[1] + self.EQUIPS_RECT_SIDE + 30)
-    @property
-    def POS_RIGHTHAND(self):
-        return (self.POS_CHEST[0] - self.EQUIPS_RECT_SIDE - 30, self.POS_CHEST[1])
-    @property
-    def POS_LEFTHAND(self):
-        return (self.POS_CHEST[0] + self.EQUIPS_RECT_SIDE + 30, self.POS_CHEST[1])
-    @property
-    def POS_ITEM1(self):
-        return (self.POS_LEG[0] - self.EQUIPS_RECT_SIDE - 30, self.POS_LEG[1])
-    @property
-    def POS_ITEM2(self):
-        return (self.POS_LEG[0] + self.EQUIPS_RECT_SIDE + 30, self.POS_LEG[1])
-    @property
-    def ATTRIBUTES_POS(self):
-        return (boxes.stats_pos[0] + (boxes.minorbox_size[0] - config.PADDING)/2 - (self.ATTRIBUTES_SIZE[0] + self.PLUS_TEXT.get_width() + 5),
-                        boxes.minorbox_TITLE_HEIGHT + 2*config.PADDING + 3*self.HPMPXP_FONT.render("Sample", True, "white").get_height())
-    @property
-    def CONDITIONS_POS(self):
-        return (boxes.stats_pos[0] + config.PADDING, self.ATTRIBUTES_POS[1] + self.ATTRIBUTES_SIZE[1] + config.PADDING)
-    @property
-    def STR_POS(self):
-        return (self.ATTRIBUTES_POS)
-    
-    # ~~~~~~~~~~ Inventory ~~~~~~~~~~
-    # ----|1|---- Rectangles ----|1|----
-    @property
-    def BACK_TEXT_RECT(self):
-        return self.BACK_TEXT.get_rect(bottomright = (config.MAINBOX_POS[0] + config.MAINBOX_SIZE[0] - config.PADDING - config.HIGHLIGHT_SIGN_SIZE[0],
-                                                      config.MAINBOX_POS[1] + config.MAINBOX_SIZE[1] - config.PADDING))
+        # region ----|1|---- Position
+        self.POS_HELMET = (boxes.equips_pos[0] + boxes.minorbox_w/2 - self.EQUIPS_RECT_SIDE/2,
+                           boxes.equips_pos[1] + boxes.minorbox_TITLE_HEIGHT + config.PADDING)
+        
+        self.POS_CHEST = (self.POS_HELMET[0],
+                          self.POS_HELMET[1] + self.EQUIPS_RECT_SIDE + 30)
+        
+        self.POS_LEG = (self.POS_CHEST[0],
+                        self.POS_CHEST[1] + self.EQUIPS_RECT_SIDE + 30)
+        
+        self.POS_BOOTS = (self.POS_LEG[0],
+                          self.POS_LEG[1] + self.EQUIPS_RECT_SIDE + 30)
+
+        self.POS_RIGHTHAND = (self.POS_CHEST[0] - self.EQUIPS_RECT_SIDE - 30,
+                              self.POS_CHEST[1])
+
+        self.POS_LEFTHAND = (self.POS_CHEST[0] + self.EQUIPS_RECT_SIDE + 30,
+                             self.POS_CHEST[1])
+
+        self.POS_ITEM1 = (self.POS_LEG[0] - self.EQUIPS_RECT_SIDE - 30,
+                          self.POS_LEG[1])
+
+        self.POS_ITEM2 = (self.POS_LEG[0] + self.EQUIPS_RECT_SIDE + 30,
+                          self.POS_LEG[1])
+        
+        self.ATTRIBUTES_POS = (boxes.stats_pos[0] + (boxes.minorbox_w - config.PADDING)/2 - (self.ATTRIBUTES_SIZE[0] + self.PLUS_TEXT.get_width() + 5),
+                               boxes.minorbox_TITLE_HEIGHT + 2*config.PADDING + 3*self.HPMPXP_FONT.render("Sample", True, "white").get_height())
+
+        self.CONDITIONS_POS = (boxes.stats_pos[0] + config.PADDING,
+                               self.ATTRIBUTES_POS[1] + self.ATTRIBUTES_SIZE[1] + config.PADDING)
+        
+        self.STR_POS = (self.ATTRIBUTES_POS)
+            # endregion
+        # region ----|1|---- Rect
+        self.BACK_TEXT_RECT = self.BACK_TEXT.get_rect(bottomright = (config.MAINBOX_POS[0] + config.MAINBOX_SIZE[0] - config.PADDING - config.HIGHLIGHT_SIGN_SIZE[0],
+                                                                     config.MAINBOX_POS[1] + config.MAINBOX_SIZE[1] - config.PADDING)) 
+            # endregion
     
     # ~~~~~~~~~~ Functions ~~~~~~~~~~
     # ----|1|---- HPMPXP ----|1|----
@@ -95,15 +87,15 @@ class Inventory:
                 surface.blit(hp_text, hp_text_rect)
 
                 # ------ HP BAR ------
-                pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175 - 4,
+                pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_w*0.175 - 4,
                                                     boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2 - 4 - 4,
-                                                    boxes.minorbox_size[0]*0.65 + 4 + 4 + 1,
+                                                    boxes.minorbox_w*0.65 + 4 + 4 + 1,
                                                     10 + 4 + 4), 2)
-                pygame.draw.line(surface, "Green", (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175,
-                                                    boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2),(boxes.stats_pos[0] + boxes.minorbox_size[0]*0.825, boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2), 10)
+                pygame.draw.line(surface, "Green", (boxes.stats_pos[0] + boxes.minorbox_w*0.175,
+                                                    boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2),(boxes.stats_pos[0] + boxes.minorbox_w*0.825, boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2), 10)
 
                 numbers_text = self.HPMPXP_FONT.render(f"{player.stats["HP"]}/{player.stats["MAX_HP"]}", True, "White")
-                numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_size[0]/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height/2 - 4))
+                numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_w/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height/2 - 4))
                 surface.blit(functions.glowing_text(f"{player.stats["HP"]}/{player.stats["MAX_HP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
 
             # ------ MP ------
@@ -115,11 +107,11 @@ class Inventory:
                 surface.blit(mp_text, mp_text_rect)
 
                 # ------ MP BAR ------
-                pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175 - 4, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4 - 4, boxes.minorbox_size[0]*0.65 + 4 + 4 + 1,  10 + 4 + 4), 2)
-                pygame.draw.line(surface, "royalblue", (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2), (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.825, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2), 10)
+                pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_w*0.175 - 4, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4 - 4, boxes.minorbox_w*0.65 + 4 + 4 + 1,  10 + 4 + 4), 2)
+                pygame.draw.line(surface, "royalblue", (boxes.stats_pos[0] + boxes.minorbox_w*0.175, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2), (boxes.stats_pos[0] + boxes.minorbox_w*0.825, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2), 10)
 
                 numbers_text = self.HPMPXP_FONT.render(f"{player.stats["MP"]}/{player.stats["MAX_MP"]}", True, "White")
-                numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_size[0]/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4))
+                numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_w/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4))
                 surface.blit(functions.glowing_text(f"{player.stats["MP"]}/{player.stats["MAX_MP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
 
             # ------ EXP ------
@@ -132,12 +124,12 @@ class Inventory:
                 surface.blit(exp_text, exp_text_rect)
 
                 # ------ EXP BAR ------
-                pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175 - 4, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2 - 4 - 4, boxes.minorbox_size[0]*0.65 + 4 + 4 + 1,  10 + 4 + 4), 2)
+                pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_w*0.175 - 4, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2 - 4 - 4, boxes.minorbox_w*0.65 + 4 + 4 + 1,  10 + 4 + 4), 2)
                 if exp_percent > 0:
-                    pygame.draw.line(surface, "goldenrod", (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2), (boxes.stats_pos[0] + boxes.minorbox_size[0]*0.175 + (boxes.minorbox_size[0]*0.65 * exp_percent), boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2), 10)
+                    pygame.draw.line(surface, "goldenrod", (boxes.stats_pos[0] + boxes.minorbox_w*0.175, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2), (boxes.stats_pos[0] + boxes.minorbox_w*0.175 + (boxes.minorbox_w*0.65 * exp_percent), boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2), 10)
 
                 numbers_text = self.HPMPXP_FONT.render(f"{player.stats["EXP"]}/{player.stats["MAX_EXP"]}", True, "White")
-                numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_size[0]/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2 - 4))
+                numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_w/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2 - 4))
                 surface.blit(functions.glowing_text(f"{player.stats["EXP"]}/{player.stats["MAX_EXP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
 
     # ------ Attributes ------

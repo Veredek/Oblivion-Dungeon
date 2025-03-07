@@ -48,28 +48,34 @@ def new_game():
                 inventory.inventory(player)
             else:
                 game_state.ongame_state = "after"
-                after_mouse_over = boxes.after_box(screen.base_surface)
+                after_mouse_over = boxes.after_box(mouse_pos)
                 
         # ------ Text ------
         else:
             game_state.ongame_state = "text"
             boxes.draw_text(script)
 
-        # ------ Window Blit ------
+        # ~~~~~~~~~~ Window Blit ~~~~~~~~~~
         if game_state.state == "NEW GAME" : screen.blit_surface(screen.base_surface)
 
 
-        # ------ Detectando Eventos ------
+        # region ----|1|---- Event Handle
         for event in pygame.event.get():
             functions.basic_events(event)
 
-            # Detecta Click Esquerdo do Mouse
+            # region ----|2|---- MOUSEBUTTOMDOWN
             if event.type == pygame.MOUSEBUTTONDOWN:
-                if game_state.ongame_state == "after":
-                    if after_mouse_over == "inventory":
-                        inventory.in_inventory = True
-                    if after_mouse_over == "proceed":
-                        game_state.ongame_state = "room"
+
+                # region ----|3|---- Left Click
+                if event.button == 1:
+                    if game_state.ongame_state == "after":
+                        if after_mouse_over == "inventory":
+                            inventory.in_inventory = True
+                        if after_mouse_over == "proceed":
+                            game_state.ongame_state = "room"
+                    # endregion
+
+                # endregion
             
             # ------ Keydown ------
             elif event.type == pygame.KEYDOWN:
@@ -88,6 +94,7 @@ def new_game():
                         boxes.skip_text = True
                 else:
                     print("\n")
+            # endregion
 
         # ----|1|---- Exit ----|1|----
         if game_state.state != "NEW GAME": break
