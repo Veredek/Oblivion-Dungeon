@@ -1,5 +1,5 @@
 ====== modified ======
-config BASE WIDTH and BASE HEIGHT as int
+(main.py): now init functions
 
 ====== working ======
 damage animation on flash enemy
@@ -8,6 +8,4 @@ damage animation on flash enemy
 Boxes.py -> boxes.py
 
 ====== latest modications ======
-- variables -> config
-- now config is a class
-- game detects witch monitor the window is opened
+config BASE WIDTH and BASE HEIGHT as int
