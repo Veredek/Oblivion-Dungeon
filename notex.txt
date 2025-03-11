@@ -1,12 +1,13 @@
-# ====== modified ======
+====== modified ======
+config BASE WIDTH and BASE HEIGHT as int
+
+====== working ======
+damage animation on flash enemy
+
+====== to modify ======
+Boxes.py -> boxes.py
+
+====== latest modications ======
 - variables -> config
 - now config is a class
 - game detects witch monitor the window is opened
-
-# ====== working ======
-
-# ====== to modify ======
-
-# ====== latest modications ======
-(solved) inventory drawmainbox error 
-dynamic game resolution (fit to screen)

@@ -75,8 +75,8 @@ class Config:
         self._monitor_scale = get_monitor_scale(self._monitor_index)
             # endregion        
         # region ----|1|---- Screen
-        self.BASE_WIDTH = 1920
-        self.BASE_HEIGHT = 1080 
+        self.BASE_WIDTH = int(1920)
+        self.BASE_HEIGHT = int(1080)
         self.SCREEN_SIZE = (self._monitor.width, self._monitor.height)
         self.MAX_RESOLUTION = get_maxresolution(self._monitor, self._monitor_index, self._monitor_scale)
         self.min_resolution = (int(854 / self._monitor_scale),
