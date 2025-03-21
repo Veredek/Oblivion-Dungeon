@@ -1,4 +1,5 @@
 import pygame
+import sqlite3
 from screeninfo import get_monitors, Monitor
 
 # ========== Functions ==========
@@ -124,6 +125,14 @@ class Config:
             # endregion
         # region ----|1|---- Display Update
         self.display_update = False
+            # endregion
+
+        # region ----|1|---- Entities
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM Entities")
+        self.entities_tuple = tuple(row[0] for row in cursor.fetchall())
+        cursor.close()
             # endregion
 
     # ~~~~~~~~~~ Properties ~~~~~~~~~~
