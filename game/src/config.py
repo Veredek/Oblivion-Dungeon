@@ -1,5 +1,6 @@
 import pygame
 import sqlite3
+import math
 from screeninfo import get_monitors, Monitor
 
 # ========== Functions ==========
@@ -66,6 +67,9 @@ def get_maxresolution(monitor : Monitor, monitor_index : int, monitor_scale: flo
 class Config:
     # ~~~~~~~~~~ Init ~~~~~~~~~~
     def __init__(self):
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+
         # region ----|1|---- Game Title
         self.GAME_TITLE = "Oblivion Dungeon"
             # endregion
@@ -126,15 +130,12 @@ class Config:
         # region ----|1|---- Display Update
         self.display_update = False
             # endregion
-
         # region ----|1|---- Entities
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
         cursor.execute("SELECT name FROM Entities")
         self.entities_tuple = tuple(row[0] for row in cursor.fetchall())
-        cursor.close()
             # endregion
 
+        cursor.close()
     # ~~~~~~~~~~ Properties ~~~~~~~~~~
     # region ----|1|---- Width/Height
 

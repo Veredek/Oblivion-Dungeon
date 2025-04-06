@@ -4,7 +4,7 @@ import os
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state
+from src.classes import screen, game_state, Entity
 
 # ========== (functions) ==========
 class Functions:
@@ -207,8 +207,8 @@ class Functions:
             screen.base_surface.blit(text_surface, text_rect)
 
     # ~~~~~~~~~~ Calculate Physical Damage ~~~~~~~~~~
-    def physical_dmg(self, caster, target, scale):
-        caster_str = caster.stats["STR"]
+    def physical_dmg(self, caster: Entity, target: Entity, scale):
+        caster_str = caster.attributes["STR"]
         target_def = target.stats["DEF"]
         reduction = 5 * math.log10(target_def) + target_def / 10
         reduction = reduction / 100

@@ -3,11 +3,10 @@ import time
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state
+from src.classes import screen, game_state, player
 from src.functions import functions
 
 from src.Boxes import boxes
-from src.entities import player
 from src.inventory import inventory
 from src.room import Room
 from assets.dialogues.script import Script

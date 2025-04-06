@@ -1,4 +1,5 @@
 import pygame
+import math
 
 # ========== Tree ==========
 from src.config import config
@@ -154,3 +155,167 @@ class GameState:
         self.room = 0
 
 game_state = GameState()
+
+# ~~~~~~~~~~ Entities ~~~~~~~~~~
+class Entity:
+    
+    def __init__(self, name: str):
+        from src.functions import functions
+        import sqlite3
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+
+        assert name in config.entities_tuple, "Not a valid entity name"
+
+        self.flashing = False
+
+        # region ----|1|---- Id
+        cursor.execute("SELECT id FROM Entities WHERE name=?", (name,))
+        self.id = cursor.fetchone()[0]
+            # endregion
+
+        # region ----|1|---- Name
+        if name == "player":
+            self.name = ""
+            self.player_bool = True
+        else:
+            self.name = name
+            self.player_bool = False
+            # endregion
+
+        # region ----|1|---- Image
+        if not self.player_bool:
+            self.img = functions.load_image(self.name)
+            # endregion
+
+        # region ----|1|---- Attributes
+
+        # region ----|2|---- Proper
+        cursor.execute("SELECT * FROM entity_attributes WHERE id=?",(self.id,))
+        ATTRIBUTES = [desc[0] for desc in cursor.description][1:] # exclude id
+        values = cursor.fetchone()[1:] # exclude id
+        self.attributes = dict(zip(ATTRIBUTES, values))
+            # endregion
+
+        # region ----|2|---- Current
+        attributes = [ATTRIBUTE.lower() for ATTRIBUTE in ATTRIBUTES]
+        for attribute,value in zip(attributes,values):    self.attributes[attribute] = value
+            # endregion
+
+        self.attributes_points = 0
+        # endregion
+
+        # region ----|1|---- Stats
+        ''' Lower case (e.g. "hp") means current value, Upper case (e.g. "HP") means proper value '''
+
+        # region ----|2|---- Proper
+        cursor.execute("SELECT * FROM entity_base_stats WHERE id=?",(self.id,))
+        STATS = [desc[0] for desc in cursor.description][1:] # exclude id
+        values = cursor.fetchone()[1:] # exclude id
+        self.stats = dict(zip(STATS, values))
+            # endregion
+
+        # region ----|2|---- Current
+        stats = [STAT.lower() for STAT in STATS]
+        for stat,value in zip(stats,values):    self.stats[stat] = value
+            # endregion
+
+        # endregion
+
+        # region ----|1|---- Skills
+        self.skills = []
+        cursor.execute("SELECT skill_id FROM entity_skills WHERE entity_id=?",(self.id,))
+        skills_ids = cursor.fetchall()[0]
+        for skill_id in skills_ids:
+            cursor.execute("SELECT name FROM skills WHERE id=?",(skill_id,))
+            skill_name = cursor.fetchone()
+            print(skill_name)
+            self.skills.append(skill_name)
+            # endregion
+
+        # region ----|1|---- Inventory
+        self.inventory = []
+        # cursor.execute("SELECT")
+            # endregion
+
+        # region ----|1|---- Equipaments
+        self.equipaments = {
+            "head": None,
+            "body": None,
+            "left hand": None,
+            "right hand": None,
+            "double hand": None,
+            "legs": None,
+            "feet": None,
+            "accessory1": None,
+            "accessory2": None
+        }
+            # endregion
+        
+        # region ----|1|---- Conditions
+        self.conditions = []
+            # endregion
+
+        # ~~~~~~~~~~ Exp ~~~~~~~~~~
+        if self.player_bool:    self.total_exp = int(0)
+
+        cursor.close()
+
+    def __str__(self):
+        # Representação para depuração
+        stats_str = "\n".join(f"{key}: {value}" for key, value in self.stats.items())
+        conditions_str = ", ".join(f"{key}: {value}" for key, value in self.conditions.items())
+        equipaments_str = ", ".join(f"{key} ({value})" for key, value in self.equipaments.items())
+        inventory_str = ", ".join(self.inventory) if self.inventory else "None"
+        return (
+            f"Name: {self.name}\n"
+            f"Stats:\n{stats_str}\n"
+            f"Conditions: {conditions_str if self.conditions else 'None'}\n"
+            f"Skills: {', '.join(self.skills) if self.skills else 'None'}\n"
+            f"Equipaments: {equipaments_str}\n"
+            f"Inventory: {inventory_str if self.inventory else 'None'}"
+        )
+
+    @property
+    def level(self):
+        level = math.sqrt(self.total_exp/10)
+        return int(level) # auto round down
+
+    @property
+    def exp(self):
+        level_exp_required = 10*(self.level**2)
+        return self.total_exp - level_exp_required
+    
+    @property
+    def exp_to_up(self):
+        level_up = self.level + 1
+        level_up_exp_required = 10*(level_up**2)
+        return level_up_exp_required - self.total_exp
+    
+    @property
+    def next_level_exp(self):
+        return self.exp + self.exp_to_up
+
+    def image(self):
+        size = self.img.get_size()
+        scale = (config.game_height / 2) / size[1]
+        resized_img = pygame.transform.scale_by(self.img, scale)
+        return resized_img
+
+    def blit(self):
+        enemy_surface = self.image()
+        enemy_surface_rect = enemy_surface.get_rect(center=config.ENEMY_CENTER)
+        screen.base_surface.blit(enemy_surface, enemy_surface_rect)
+
+    def gain_condition(self, condition_name, value):
+        # Previne stun se o personagem for imune
+        if condition_name == "stun" and "stun_immune" in self.conditions:
+            return
+
+        # Atualiza a condição existente ou adiciona uma nova
+        if condition_name in self.conditions:
+            self.conditions[condition_name] += value
+        else:
+            self.conditions[condition_name] = value
+
+player = Entity("player")

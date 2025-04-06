@@ -1,11 +1,12 @@
 ====== modified ======
-(main.py): now init functions
+entity as a class of classes.py
 
 ====== working ======
 damage animation on flash enemy
 
 ====== to modify ======
 Boxes.py -> boxes.py
+entity image def to property
 
 ====== latest modications ======
-config BASE WIDTH and BASE HEIGHT as int
+database added

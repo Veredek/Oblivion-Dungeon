@@ -2,7 +2,7 @@ import pygame
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state
+from src.classes import screen, game_state, player
 from src.functions import functions
 from src.equipaments import EQUIPAMENTS
 from src.Boxes import boxes
@@ -75,10 +75,10 @@ class Inventory:
             # endregion
     
     # ~~~~~~~~~~ Functions ~~~~~~~~~~
-    # ----|1|---- HPMPXP ----|1|----
-    def bars(self, surface, player):
+    # ---------- HPMPXP ----------
+    def bars(self, surface: pygame.Surface):
         for type in ["HP", "MP", "EXP"]:
-            # ------ HP ------
+            # region ----|1|---- HP
             if type == "HP":
                 hp_height = self.HPMPXP_FONT.render("HP", True, "White").get_size()[1]
                 # ------ HP TEXT ------
@@ -94,11 +94,13 @@ class Inventory:
                 pygame.draw.line(surface, "Green", (boxes.stats_pos[0] + boxes.minorbox_w*0.175,
                                                     boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2),(boxes.stats_pos[0] + boxes.minorbox_w*0.825, boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height*1/2), 10)
 
-                numbers_text = self.HPMPXP_FONT.render(f"{player.stats["HP"]}/{player.stats["MAX_HP"]}", True, "White")
+                numbers_text = self.HPMPXP_FONT.render(f"{player.stats["hp"]}/{player.stats["HP"]}", True, "White")
                 numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_w/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + hp_height/2 - 4))
-                surface.blit(functions.glowing_text(f"{player.stats["HP"]}/{player.stats["MAX_HP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                surface.blit(functions.glowing_text(f"{player.stats["hp"]}/{player.stats["HP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                
+            # endregion
 
-            # ------ MP ------
+            # region ----|1|---- MP
             if type == "MP":
                 mp_height = self.HPMPXP_FONT.render("MP", True, "White").get_size()[1]
                 # ------ MP TEXT ------
@@ -110,14 +112,16 @@ class Inventory:
                 pygame.draw.rect(surface, "White", (boxes.stats_pos[0] + boxes.minorbox_w*0.175 - 4, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4 - 4, boxes.minorbox_w*0.65 + 4 + 4 + 1,  10 + 4 + 4), 2)
                 pygame.draw.line(surface, "royalblue", (boxes.stats_pos[0] + boxes.minorbox_w*0.175, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2), (boxes.stats_pos[0] + boxes.minorbox_w*0.825, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2), 10)
 
-                numbers_text = self.HPMPXP_FONT.render(f"{player.stats["MP"]}/{player.stats["MAX_MP"]}", True, "White")
+                numbers_text = self.HPMPXP_FONT.render(f"{player.stats["mp"]}/{player.stats["MP"]}", True, "White")
                 numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_w/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4))
-                surface.blit(functions.glowing_text(f"{player.stats["MP"]}/{player.stats["MAX_MP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                surface.blit(functions.glowing_text(f"{player.stats["mp"]}/{player.stats["MP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+            
+            # endregion
 
-            # ------ EXP ------
+            # region ----|1|---- EXP
             if type == "EXP":
                 exp_height = self.HPMPXP_FONT.render("EXP", True, "White").get_size()[1]
-                exp_percent = player.stats["EXP"] / player.stats["MAX_EXP"]
+                exp_percent = player.exp / (player.exp + player.exp_to_up)
                 # ------ EXP TEXT ------
                 exp_text = self.HPMPXP_FONT.render("EXP", True, "White")
                 exp_text_rect = exp_text.get_rect(topleft=(boxes.stats_pos[0] + config.PADDING, boxes.minorbox_TITLE_HEIGHT + config.PADDING + 2*exp_height))
@@ -128,12 +132,14 @@ class Inventory:
                 if exp_percent > 0:
                     pygame.draw.line(surface, "goldenrod", (boxes.stats_pos[0] + boxes.minorbox_w*0.175, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2), (boxes.stats_pos[0] + boxes.minorbox_w*0.175 + (boxes.minorbox_w*0.65 * exp_percent), boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2), 10)
 
-                numbers_text = self.HPMPXP_FONT.render(f"{player.stats["EXP"]}/{player.stats["MAX_EXP"]}", True, "White")
+                numbers_text = self.HPMPXP_FONT.render(f"{player.exp}/{player.next_level_exp}", True, "White")
                 numbers_text_rect= numbers_text.get_rect(center=(boxes.stats_pos[0] + boxes.minorbox_w/2, boxes.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2 - 4))
-                surface.blit(functions.glowing_text(f"{player.stats["EXP"]}/{player.stats["MAX_EXP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                surface.blit(functions.glowing_text(f"{player.exp}/{player.next_level_exp}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+            
+            # endregion
 
-    # ------ Attributes ------
-    def attributes(self, surface, player):
+    # ---------- Attributes ----------
+    def attributes(self, surface: pygame.Surface):
         mouse_pos = screen.mouse
 
         pygame.draw.rect(surface, "white", (self.ATTRIBUTES_POS[0],
@@ -153,7 +159,7 @@ class Inventory:
             surface.blit(attribute_text, attribute_text_rect)
 
             # ATTRIBUTES VALUE
-            attribute_value = self.ATTRIBUTES_FONT.render(f" {player.stats[attributes_list[i]]} ", True, "white")
+            attribute_value = self.ATTRIBUTES_FONT.render(f" {player.attributes[attributes_list[i]]} ", True, "white")
             attribute_value_rect = attribute_value.get_rect(midtop=(self.ATTRIBUTES_POS[0] + self.ATTRIBUTES_TEXT_MAXWIDTH + self.VALUE_MAXWIDTH/2, self.ATTRIBUTES_POS[1] + i*self.ATTRIBUTES_TEXT_HEIGHT))
             surface.blit(attribute_value, attribute_value_rect)
 
@@ -167,7 +173,7 @@ class Inventory:
             pygame.draw.line(surface, "white", (self.ATTRIBUTES_POS[0], self.ATTRIBUTES_POS[1] + i*self.ATTRIBUTES_TEXT_HEIGHT), (self.ATTRIBUTES_POS[0] + self.ATTRIBUTES_SIZE[0] -1, self.ATTRIBUTES_POS[1] + i*self.ATTRIBUTES_TEXT_HEIGHT), 2)
 
         # POINTS BLIT
-        points_text = self.ATTRIBUTES_FONT.render(f" points: {player.stats["attributes points"]} ", True, "white",)
+        points_text = self.ATTRIBUTES_FONT.render(f" points: {player.attributes_points} ", True, "white",)
         applyclear_text = self.ATTRIBUTES_FONT.render(" clear   apply ", True, "white")
         clear_text = self.ATTRIBUTES_FONT.render("clear", True, "white")
         apply_text = self.ATTRIBUTES_FONT.render("apply", True, "white")
@@ -184,7 +190,7 @@ class Inventory:
         pygame.draw.line(surface, "white", (rect_pos[0] + rect_size[0]/2, rect_pos[1] + points_text.get_height()), (rect_pos[0] + rect_size[0]/2, rect_pos[1] + points_text.get_height() + applyclear_text.get_height() -1), 2)
 
     # ------ Conditions ------
-    def conditions(self, surface, player):
+    def conditions(self, surface):
         mouse_pos = screen.mouse
 
         conditions_text = config.TEXT_FONT.render("Conditions: ", True, "white")
@@ -197,7 +203,7 @@ class Inventory:
         return conditions_rects
 
     # ------ Equips ------
-    def equips(self, surface, player):
+    def equips(self, surface):
         positions = [self.POS_HELMET,self.POS_CHEST,self.POS_LEG,self.POS_BOOTS,self.POS_RIGHTHAND,self.POS_LEFTHAND,self.POS_ITEM1,self.POS_ITEM2]
         for pos in positions:
             pygame.draw.rect(surface, "white", (pos[0], pos[1], self.EQUIPS_RECT_SIDE, self.EQUIPS_RECT_SIDE), 3, 5)
@@ -240,10 +246,10 @@ class Inventory:
                 functions.highlight(screen.base_surface, config.TEXT_FONT, player.inventory[item_pos], item_text_rect)
             
             # ------ Stats ------
-            self.bars(screen.base_surface, player)
-            self.attributes(screen.base_surface, player)
-            conditions_rects = self.conditions(screen.base_surface, player)
-            self.equips(screen.base_surface, player)
+            self.bars(screen.base_surface)
+            self.attributes(screen.base_surface)
+            conditions_rects = self.conditions(screen.base_surface)
+            self.equips(screen.base_surface)
 
             # ------ Window Blit ------
             if game_state.ongame_state == "inventory": screen.blit_surface(screen.base_surface)
