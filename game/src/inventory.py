@@ -5,7 +5,7 @@ from src.config import config
 from src.classes import screen, game_state, player
 from src.functions import functions
 from src.equipaments import EQUIPAMENTS
-from src.Boxes import boxes
+from src.boxes import boxes
 
 # ========== Functions ==========
 

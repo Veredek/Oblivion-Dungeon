@@ -1,14 +1,13 @@
 ====== modified ======
-Skill as a class of classes.py
-skills.py deleted
+Boxes.py -> boxes.py
+
 
 ====== working ======
 damage animation on flash enemy
 
 ====== to modify ======
-Boxes.py -> boxes.py
 entity image def to property
-delete main path
 
 ====== latest modications ======
-entity as a class of classes.py
+Skill as a class of classes.py
+skills.py deleted

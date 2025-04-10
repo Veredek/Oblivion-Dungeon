@@ -409,7 +409,7 @@ class Skill:
 
     # ---------- Hurt Animation ----------
     def flash_enemy(self, enemy : Entity, damage: int):
-        from src.Boxes import boxes
+        from src.boxes import boxes
 
         clock = pygame.time.Clock()
         image = enemy.image()
