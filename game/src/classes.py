@@ -1,5 +1,7 @@
 import pygame
 import math
+import sqlite3
+import time
 
 # ========== Tree ==========
 from src.config import config
@@ -161,7 +163,6 @@ class Entity:
     
     def __init__(self, name: str):
         from src.functions import functions
-        import sqlite3
         conn = sqlite3.connect("game\src\database\database.sqlite")
         cursor = conn.cursor()
 
@@ -319,3 +320,142 @@ class Entity:
             self.conditions[condition_name] = value
 
 player = Entity("player")
+
+# ~~~~~~~~~~ Skills ~~~~~~~~~~
+class Skill:
+    # ---------- Init ----------
+    def __init__(self, name: str):
+        assert name in config.skills_tuple
+
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+
+        self.name = name
+
+        # region ----|1|---- Id
+        cursor.execute("SELECT id FROM skills WHERE name=?",(self.name,))
+        self.id = cursor.fetchone()[0]
+        # endregion
+
+        # region ----|1|---- Text
+        cursor.execute("SELECT text FROM skills WHERE name=?",(self.name,))
+        self.text = cursor.fetchone()[0]
+        # endregion
+
+        # region ----|1|---- Damage Type
+        cursor.execute("SELECT type_id FROM skills WHERE name=?",(self.name,))
+        type_id = cursor.fetchone()[0]
+        cursor.execute("SELECT type FROM skill_types WHERE id=?",(type_id,))
+        self.type = cursor.fetchone()[0]
+        # endregion
+
+        # region ----|1|---- Damage Source
+        cursor.execute("SELECT dmg_source_id FROM skills WHERE name=?",(self.name,))
+        src_id = cursor.fetchone()[0]
+        cursor.execute("SELECT source FROM dmg_source WHERE id=?",(src_id,))
+        self.dmg_source = cursor.fetchone()[0]
+        # endregion 
+
+        # region ----|1|---- Multicast
+        cursor.execute("SELECT multicast FROM skills WHERE name=?",(self.name,))
+        self.multicast = cursor.fetchone()[0]
+        # endregion
+
+        # region ----|1|---- Scale
+        cursor.execute("SELECT scale FROM skills WHERE name=?",(self.name,))
+        self.scale = cursor.fetchone()[0]
+        # endregion
+
+        # region ----|1|---- Accuracy
+        cursor.execute("SELECT accuracy FROM skills WHERE name=?",(self.name,))
+        self.accuracy = cursor.fetchone()[0]
+        # endregion
+
+        # region ----|1|---- Conditions
+        cursor.execute("SELECT * FROM skill_conditions WHERE skill_id=?",(self.id,))
+        try:
+            ### If there is conditions
+            HEADERS = [desc[0] for desc in cursor.description][2:] # exclude ids
+            values = cursor.fetchone()[2:] # exclude ids
+            self.conditions = dict(zip(HEADERS, values))
+        except TypeError:
+            ### if there is no conditions
+            self.conditions = None
+        # endregion
+
+        cursor.close()
+
+    # ---------- Str ----------
+    def __str__(self):
+        return f'''[id:{self.id}] Skill ({self.name}): Type = {self.type},
+                                                       Source = {self.dmg_source},
+                                                       Multicast = {self.multicast},
+                                                       Scale = {self.scale},
+                                                       Accuracy = {self.accuracy}
+                                                       Conditions = {self.conditions}'''
+
+    # ---------- Blit Damage on Enemy ----------
+    def blit_damage(self, damage: int, elapsed: float):
+        font = config.TEXT_FONT
+        surface = screen.base_surface
+
+        damage_surface = font.render(f"{damage}", True, "red")
+        damage_rect = damage_surface.get_rect(center=(config.BASE_WIDTH,
+                                                        config.BASE_HEIGHT/3 - elapsed*10
+        ))
+
+        surface.blit(damage_surface, damage_rect)
+        return None
+
+    # ---------- Hurt Animation ----------
+    def flash_enemy(self, enemy : Entity, damage: int):
+        from src.Boxes import boxes
+
+        clock = pygame.time.Clock()
+        image = enemy.image()
+        flashed = image.copy()
+        overlay = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+        overlay.fill((255, 255, 255, 0))
+        flashed.blit(overlay, (0,0), special_flags=pygame.BLEND_RGBA_ADD)
+
+        flashing = True
+        timer = time.time()
+        while flashing:
+            # ----|1|---- Clear Surfaces ----|1|----
+            screen.clear_surfaces()
+
+            # ----|1|---- Elapsed Time ----|1|----
+            elapsed = time.time() - timer
+
+            # ----|1|---- Flash Frames ----|1|----
+            if int(elapsed * 20) % 2 == 0:
+                enemy_display = flashed
+            else:
+                enemy_display = image
+
+            # ----|1|---- Window Blit ----|1|----
+            boxes.draw_mainbox()
+
+            enemy_display_rect = enemy_display.get_rect(center=config.ENEMY_CENTER)
+            screen.base_surface.blit(enemy_display, enemy_display_rect)
+            self.blit_damage(damage, elapsed)
+            screen.blit_surface(screen.base_surface)
+
+            # ----|1|---- Stop ----|1|----
+            if elapsed > 0.5:
+                flashing = False
+        
+            # ----|1|---- Tick FPS ----|1|----
+            clock.tick(60)
+
+    # ---------- Activate Skill ----------
+    def activate(self, caster, target = None):
+        from src.functions import functions
+        # ------ Normal Physical Damage ------
+        if self.type == "physical":
+            damage = 0 # init
+
+            for cast in range(self.multicast):
+                damage += functions.physical_dmg(caster, target, self.scale)
+            target.stats["HP"] -= damage
+            self.flash_enemy(target, damage)

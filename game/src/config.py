@@ -131,9 +131,16 @@ class Config:
         self.display_update = False
             # endregion
         # region ----|1|---- Entities
-        cursor.execute("SELECT name FROM Entities")
+        ### Tuple of all entities names
+        cursor.execute("SELECT name FROM entities")
         self.entities_tuple = tuple(row[0] for row in cursor.fetchall())
-            # endregion
+        # endregion
+
+        # region ----|1|---- Skills
+        ### Tuple of all skills names
+        cursor.execute("SELECT name FROM skills")
+        self.skills_tuple = tuple(row[0] for row in cursor.fetchall())
+        # endregion
 
         cursor.close()
     # ~~~~~~~~~~ Properties ~~~~~~~~~~

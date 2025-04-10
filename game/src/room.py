@@ -3,10 +3,9 @@ import time
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state, player, Entity
+from src.classes import screen, game_state, player, Entity, Skill
 from src.functions import functions
 from src.Boxes import boxes
-from src.skills import SKILLS
 
 # ====== Global Variables ======
 attack_text_rect_center = (config.MAINBOX_POS[0] + (1/5)*config.MAINBOX_SIZE[0],
@@ -52,7 +51,7 @@ class Room:
                     # ----|3|---- Left Click ----|3|----
                     if event.button == 1:
                         if mouse_over == "attack":
-                            skill = SKILLS["attack"]()
+                            skill = Skill("attack")
                             skill.activate(player, enemy)
                             print(enemy.stats["HP"])
                     # ------ Escape ------
