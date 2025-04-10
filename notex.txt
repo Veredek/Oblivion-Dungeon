@@ -1,6 +1,5 @@
 ====== modified ======
-Boxes.py -> boxes.py
-
+README.md modified
 
 ====== working ======
 damage animation on flash enemy
@@ -9,5 +8,4 @@ damage animation on flash enemy
 entity image def to property
 
 ====== latest modications ======
-Skill as a class of classes.py
-skills.py deleted
+Boxes.py -> boxes.py
