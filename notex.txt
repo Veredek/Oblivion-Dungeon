@@ -1,11 +1,13 @@
 ====== modified ======
-README.md modified
+second_surface added
+surfaces work as RGBA properly
+damage animation on flash enemy
 
 ====== working ======
-damage animation on flash enemy
 
 ====== to modify ======
 entity image def to property
+surface not cleaning on continue in menu during fight
 
 ====== latest modications ======
-Boxes.py -> boxes.py
+README.md modified

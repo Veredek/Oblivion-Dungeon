@@ -98,6 +98,8 @@ class Config:
         
         self.TEXT_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 45)
 
+        self.PIXEL_FONT = pygame.font.Font(r"game\assets\fonts\alagard.ttf", 45)
+
         self.GAMENAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf", 140)
 
         self.HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
@@ -131,9 +133,18 @@ class Config:
         self.display_update = False
             # endregion
         # region ----|1|---- Entities
+
+        # region ----|2|---- Tuple
         ### Tuple of all entities names
         cursor.execute("SELECT name FROM entities")
         self.entities_tuple = tuple(row[0] for row in cursor.fetchall())
+            # endregion
+
+        # region ----|2|---- Flashing Time
+        ### Total time of the enemy receiving damage
+        self.flashing_time = 0.5
+            # endregion
+
         # endregion
 
         # region ----|1|---- Skills

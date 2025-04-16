@@ -18,7 +18,10 @@ class Screen:
         pygame.display.set_caption(config.GAME_TITLE)
         pygame.display.flip()
 
-        self.base_surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)        
+        self.base_surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
+        self.second_surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
+        ### If another auxiliar surface is added, put it in extra_surfaces
+        self.surfaces = [self.base_surface, self.second_surface]
 
     # ~~~~~~~~~~ Properties ~~~~~~~~~~
     # region ----|1|---- Offset x
@@ -49,15 +52,23 @@ class Screen:
 
         return (mouse_x - self.offset_x, mouse_y - self.offset_y)
         # endregion
-    
+
     # ~~~~~~~~~~ Functions ~~~~~~~~~~
     # region ----|1|---- Clear Surfaces
     def clear_surfaces(self):
         """
-        Clears base_surface and alpha surface
+        Clears all surfaces
         """
-        self.base_surface.fill((0,0,0))
-        # endregion
+        self.base_surface.fill((0,0,0,0))
+        self.second_surface.fill((0,0,0,0))
+
+    def clear_surface(self, surface: pygame.Surface):
+        """
+        Clears given surface
+        """
+        surface.fill((0,0,0,0))
+    # endregion
+
     # region ----|1|---- Update Display
     def update_display(self):
         if config.display_update:
@@ -72,7 +83,8 @@ class Screen:
             print(f"*Display Update*" + 
                 f"    Resolution: {config.resolution}" +
                 f"    Display: {self.display_size}\n")
-        # endregion
+    # endregion
+
     # region ----|1|---- Toggle Fullscreen
     def toggle_fullscreen(self):
         self.fullscreen = not self.fullscreen
@@ -99,7 +111,8 @@ class Screen:
         # ----|1|---- Display Update ----|1|----
         config.display_update = True
         self.update_display()
-        # endregion
+    # endregion
+
     # region ----|1|---- Resize Display
     def resize(self, event : pygame.event):
         if self.display_size != event.size:
@@ -137,13 +150,38 @@ class Screen:
             # ----|1|---- Display Update ----|1|----
             config.display_update = True
             self.update_display()
-        # endregion
+    # endregion
+
     # region ----|1|---- Blit Surface On Display
     def blit_surface(self, surface: pygame.Surface):
+        # Clear Display
+        self.display.fill((0,0,0))
+
+        # Scale Base Surface
         scaled_surface = pygame.transform.scale(surface, (config.game_width, config.game_height))
+
+        # Blit Base Surface on Display
         self.display.blit(scaled_surface, (screen.offset_x, screen.offset_y))
+
+        # Update Display
         pygame.display.flip()
-        # endregion
+
+    def blit_surfaces(self):
+        # Clear Display
+        self.display.fill((0,0,0))
+
+        # Blit Each Surface
+        for surface in self.surfaces:
+            # Scale Surface
+            scaled_surface = pygame.transform.scale(surface, (config.game_width, config.game_height))
+
+            # Blit Surface on Display
+            self.display.blit(scaled_surface, (screen.offset_x, screen.offset_y))
+
+        # Update Display
+        pygame.display.flip()
+
+    # endregion
 
 screen = Screen()
 
@@ -396,12 +434,12 @@ class Skill:
 
     # ---------- Blit Damage on Enemy ----------
     def blit_damage(self, damage: int, elapsed: float):
-        font = config.TEXT_FONT
-        surface = screen.base_surface
+        font = config.PIXEL_FONT
+        surface = screen.second_surface
 
-        damage_surface = font.render(f"{damage}", True, "red")
-        damage_rect = damage_surface.get_rect(center=(config.BASE_WIDTH,
-                                                        config.BASE_HEIGHT/3 - elapsed*10
+        damage_surface = font.render(f"{damage}", True, (255,0,0,0))
+        damage_rect = damage_surface.get_rect(center=(config.BASE_WIDTH/2,
+                                                        config.BASE_HEIGHT/5 - elapsed*100
         ))
 
         surface.blit(damage_surface, damage_rect)
@@ -412,11 +450,14 @@ class Skill:
         from src.boxes import boxes
 
         clock = pygame.time.Clock()
+
+        # region ----|1|---- Making a White copy of the Enemy Image
         image = enemy.image()
         flashed = image.copy()
         overlay = pygame.Surface(image.get_size(), pygame.SRCALPHA)
         overlay.fill((255, 255, 255, 0))
         flashed.blit(overlay, (0,0), special_flags=pygame.BLEND_RGBA_ADD)
+        # endregion
 
         flashing = True
         timer = time.time()
@@ -439,14 +480,16 @@ class Skill:
             enemy_display_rect = enemy_display.get_rect(center=config.ENEMY_CENTER)
             screen.base_surface.blit(enemy_display, enemy_display_rect)
             self.blit_damage(damage, elapsed)
-            screen.blit_surface(screen.base_surface)
+            screen.blit_surfaces()
 
             # ----|1|---- Stop ----|1|----
-            if elapsed > 0.5:
+            if elapsed > config.flashing_time:
                 flashing = False
-        
+
             # ----|1|---- Tick FPS ----|1|----
             clock.tick(60)
+
+        return None
 
     # ---------- Activate Skill ----------
     def activate(self, caster, target = None):
