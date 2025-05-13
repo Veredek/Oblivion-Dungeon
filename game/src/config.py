@@ -72,13 +72,15 @@ class Config:
 
         # region ----|1|---- Game Title
         self.GAME_TITLE = "Oblivion Dungeon"
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Monitor
         self._monitor_index = get_monitor_index()
         self._monitor = get_monitors()[self._monitor_index]
         self.base_of_proportion = get_base_of_prop(self._monitor)
         self._monitor_scale = get_monitor_scale(self._monitor_index)
-            # endregion        
+        # endregion -|1|-
+
         # region ----|1|---- Screen
         self.BASE_WIDTH = int(1920)
         self.BASE_HEIGHT = int(1080)
@@ -86,16 +88,19 @@ class Config:
         self.MAX_RESOLUTION = get_maxresolution(self._monitor, self._monitor_index, self._monitor_scale)
         self.min_resolution = (int(854 / self._monitor_scale),
                                int(480 / self._monitor_scale))
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Padding
         self.PADDING = 20
-            #endregion
+        # endregion -|1|-
+
         # region ----|1|---- Typing Speed
-        self.TYPING_SPEED = 50  # Caracteres por segundo   
-            # endregion
+        self.TYPING_SPEED = 50  # Caracteres por segundo
+        # endregion -|1|-
+
         # region ----|1|---- Font
         self.TITLE_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", 65)
-        
+
         self.TEXT_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 45)
 
         self.PIXEL_FONT = pygame.font.Font(r"game\assets\fonts\alagard.ttf", 45)
@@ -103,55 +108,63 @@ class Config:
         self.GAMENAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf", 140)
 
         self.HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Font Height
         self.TITLE_HEIGHT = self.TITLE_FONT.size("Text Sample")[1]
 
         self.TEXT_HEIGHT = self.TEXT_FONT.size("Text Sample")[1]
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Font Width
         self.name_length = self.TITLE_FONT.size(12 * "#")[0]
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- MainBox
         self.MAINBOX_SIZE = (0.9 * self.BASE_WIDTH,
                               self.TEXT_HEIGHT * 4 + 2 * self.PADDING)
         self.MAINBOX_POS = ((self.BASE_WIDTH - self.MAINBOX_SIZE[0]) / 2,
-                             0.7 * self.BASE_HEIGHT)     
-            # endregion
+                             0.7 * self.BASE_HEIGHT)
+        # endregion -|1|-
+
         # region ----|1|---- Size
         self.HIGHLIGHT_SIGN_SIZE = self.HIGHLIGHT_SIGN.render("+", True, "Yellow").get_size()
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Center
         self.ENEMY_CENTER = (self.BASE_WIDTH / 2,
                              self.BASE_HEIGHT / 3)
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Game Width/Height
         self._game_width = self.MAX_RESOLUTION[0]
         self._game_height = self.MAX_RESOLUTION[1]
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Display Update
         self.display_update = False
-            # endregion
+        # endregion -|1|-
+
         # region ----|1|---- Entities
 
         # region ----|2|---- Tuple
         ### Tuple of all entities names
         cursor.execute("SELECT name FROM entities")
         self.entities_tuple = tuple(row[0] for row in cursor.fetchall())
-            # endregion
+        # endregion -|2|-
 
         # region ----|2|---- Flashing Time
         ### Total time of the enemy receiving damage
         self.flashing_time = 0.5
-            # endregion
+        # endregion -|2|-
 
-        # endregion
+        # endregion -|1|-
 
         # region ----|1|---- Skills
         ### Tuple of all skills names
         cursor.execute("SELECT name FROM skills")
         self.skills_tuple = tuple(row[0] for row in cursor.fetchall())
-        # endregion
+        # endregion -|1|-
 
         cursor.close()
     # ~~~~~~~~~~ Properties ~~~~~~~~~~
@@ -164,7 +177,7 @@ class Config:
         Current display width
         """
         return self._game_width
-    
+
     @game_width.setter
     def game_width(self, value):
         """
@@ -184,7 +197,7 @@ class Config:
             self._game_height = int(self._game_width / (16/9))
 
         self.display_update = True
-        # endregion
+    # endregion -|2|-
 
     # region ----|2|---- Height
     @property
@@ -199,7 +212,7 @@ class Config:
         """
         Auto updates game width, to not do so, use: game_height = (value, "only")
         """
-        
+
         flag = False # init flag
         if isinstance(value, tuple): # if value is tuple
             flag = value[1]
@@ -213,7 +226,9 @@ class Config:
             self._game_width = int(self._game_height * (16/9))
 
         self.display_update = True
-        # endregion
+    # endregion -|2|-
+
+    # endregion -|1|-
 
     # region ----|1|---- Resolution
     @property
@@ -222,17 +237,17 @@ class Config:
         (game_width, game_height)
         """
         return (self._game_width, self.game_height)
-        # endregion
-    
+    # endregion -|1|-
+
     # region ----|1|---- Scale
     @property
     def scale(self):
         """
         Scale visuals based on current resolution
         """
-        
+
         return min(self._game_width / self.BASE_WIDTH, self._game_height / self.BASE_HEIGHT)
-        # endregion
+    # endregion -|1|-
 
     # ~~~~~~~~~~ Functions ~~~~~~~~~~
     # region ----|1|---- Monitor Change
@@ -251,6 +266,6 @@ class Config:
         self.MAX_RESOLUTION = get_maxresolution(self._monitor, self._monitor_index, self._monitor_scale)
 
         return None
-        # endregion
+    # endregion -|1|-
 
 config = Config()
