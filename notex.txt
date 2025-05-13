@@ -1,13 +1,24 @@
 ====== modified ======
+database restructured
+Entity class: added properties (exp, level and stat)
+Skill class: activate added
+functions.py: removed skill functions
+
+====== working ======
+entities attributes and stats to work properly
+skills to work properly
+
+====== to modify ======
+insert entity init conditions
+turn #endregion into #endregion |n|
+miss and avoid animation
+create condition class
+skill condition handle on activate
+entity image def to property
+surface not cleaning on continue in menu during fight
+database items
+
+====== latest modications ======
 second_surface added
 surfaces work as RGBA properly
 damage animation on flash enemy
-
-====== working ======
-
-====== to modify ======
-entity image def to property
-surface not cleaning on continue in menu during fight
-
-====== latest modications ======
-README.md modified

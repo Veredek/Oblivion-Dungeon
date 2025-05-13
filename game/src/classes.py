@@ -198,7 +198,7 @@ game_state = GameState()
 
 # ~~~~~~~~~~ Entities ~~~~~~~~~~
 class Entity:
-    
+    # ~~~~~~~~~~ Init ~~~~~~~~~~
     def __init__(self, name: str):
         from src.functions import functions
         conn = sqlite3.connect("game\src\database\database.sqlite")
@@ -233,10 +233,11 @@ class Entity:
         cursor.execute("SELECT * FROM entity_attributes WHERE id=?",(self.id,))
         ATTRIBUTES = [desc[0] for desc in cursor.description][1:] # exclude id
         values = cursor.fetchone()[1:] # exclude id
-        self.attributes = dict(zip(ATTRIBUTES, values))
+        self.ATTRIBUTES = dict(zip(ATTRIBUTES, values))
             # endregion
 
         # region ----|2|---- Current
+        self.attributes = dict()
         attributes = [ATTRIBUTE.lower() for ATTRIBUTE in ATTRIBUTES]
         for attribute,value in zip(attributes,values):    self.attributes[attribute] = value
             # endregion
@@ -245,16 +246,21 @@ class Entity:
         # endregion
 
         # region ----|1|---- Stats
-        ''' Lower case (e.g. "hp") means current value, Upper case (e.g. "HP") means proper value '''
+        ### Lower case (e.g. "hp") means current value, Upper case (e.g. "HP") means proper value ###
 
         # region ----|2|---- Proper
         cursor.execute("SELECT * FROM entity_base_stats WHERE id=?",(self.id,))
         STATS = [desc[0] for desc in cursor.description][1:] # exclude id
         values = cursor.fetchone()[1:] # exclude id
-        self.stats = dict(zip(STATS, values))
+        self.STATS = dict(zip(STATS, values))
             # endregion
 
         # region ----|2|---- Current
+        self.stats = dict()
+
+        ''' This can be negative, and in that case, the stat property will return 0.
+            Status effects will affect here (modified when applied, and unmodified when expired).'''
+
         stats = [STAT.lower() for STAT in STATS]
         for stat,value in zip(stats,values):    self.stats[stat] = value
             # endregion
@@ -290,7 +296,7 @@ class Entity:
             "accessory2": None
         }
             # endregion
-        
+
         # region ----|1|---- Conditions
         self.conditions = []
             # endregion
@@ -300,6 +306,7 @@ class Entity:
 
         cursor.close()
 
+    # ~~~~~~~~~~ String ~~~~~~~~~~
     def __str__(self):
         # Representação para depuração
         stats_str = "\n".join(f"{key}: {value}" for key, value in self.stats.items())
@@ -315,6 +322,8 @@ class Entity:
             f"Inventory: {inventory_str if self.inventory else 'None'}"
         )
 
+    # ~~~~~~~~~~ Properties ~~~~~~~~~~
+    # region ----|1|---- EXP & Level
     @property
     def level(self):
         level = math.sqrt(self.total_exp/10)
@@ -324,16 +333,55 @@ class Entity:
     def exp(self):
         level_exp_required = 10*(self.level**2)
         return self.total_exp - level_exp_required
-    
+
     @property
     def exp_to_up(self):
         level_up = self.level + 1
         level_up_exp_required = 10*(level_up**2)
         return level_up_exp_required - self.total_exp
-    
+
     @property
     def next_level_exp(self):
         return self.exp + self.exp_to_up
+
+    # endregion
+
+    # region ----|1|---- Stats
+    @property
+    def stat(self, name: str):
+        ''' Use lowercase.
+            Returns the final current value of the stat.'''
+
+        attribute_stat = self._stats_from_attributes(name)[name]
+        return attribute_stat + self.stats[name]
+
+    # endregion
+
+    # ~~~~~~~~~~ Functions ~~~~~~~~~~
+    def _stats_from_attributes(self, attribute: str):
+        ''' Use lowercase'''
+        assert attribute in ['str', 'dex', 'wis', 'fort', 'res'], "Not a valid attribute"
+
+        stats = dict()
+
+        if attribute == 'str':
+            stats['hp_regen'] =    int(0.1 * self.attributes['str'])
+            stats['crit_dmg'] =    0.025 * self.attributes['str']
+        elif attribute == 'dex':
+            stats['accuracy'] =    0.02 * self.attributes['dex']
+            stats['avoid'] =       0.005 * self.attributes['dex']
+            stats['crit_chance'] = 0.005 * self.attributes['dex']
+        elif attribute == 'wis':
+            stats['mp_regen'] =    int(0.1 * self.attributes['wis'])
+            stats['mp'] =          1 * self.attributes['wis']
+        elif attribute == 'fort':
+            stats['hp'] =          2 * self.attributes['fort']
+            stats['def'] =         1 * self.attributes['fort']
+        elif attribute == 'res':
+            stats['resist'] =      0.005 * self.attributes['fort']
+            stats['mdef'] =        1 * self.attributes['res']
+
+        return stats
 
     def image(self):
         size = self.img.get_size()
@@ -378,47 +426,6 @@ class Skill:
         # region ----|1|---- Text
         cursor.execute("SELECT text FROM skills WHERE name=?",(self.name,))
         self.text = cursor.fetchone()[0]
-        # endregion
-
-        # region ----|1|---- Damage Type
-        cursor.execute("SELECT type_id FROM skills WHERE name=?",(self.name,))
-        type_id = cursor.fetchone()[0]
-        cursor.execute("SELECT type FROM skill_types WHERE id=?",(type_id,))
-        self.type = cursor.fetchone()[0]
-        # endregion
-
-        # region ----|1|---- Damage Source
-        cursor.execute("SELECT dmg_source_id FROM skills WHERE name=?",(self.name,))
-        src_id = cursor.fetchone()[0]
-        cursor.execute("SELECT source FROM dmg_source WHERE id=?",(src_id,))
-        self.dmg_source = cursor.fetchone()[0]
-        # endregion 
-
-        # region ----|1|---- Multicast
-        cursor.execute("SELECT multicast FROM skills WHERE name=?",(self.name,))
-        self.multicast = cursor.fetchone()[0]
-        # endregion
-
-        # region ----|1|---- Scale
-        cursor.execute("SELECT scale FROM skills WHERE name=?",(self.name,))
-        self.scale = cursor.fetchone()[0]
-        # endregion
-
-        # region ----|1|---- Accuracy
-        cursor.execute("SELECT accuracy FROM skills WHERE name=?",(self.name,))
-        self.accuracy = cursor.fetchone()[0]
-        # endregion
-
-        # region ----|1|---- Conditions
-        cursor.execute("SELECT * FROM skill_conditions WHERE skill_id=?",(self.id,))
-        try:
-            ### If there is conditions
-            HEADERS = [desc[0] for desc in cursor.description][2:] # exclude ids
-            values = cursor.fetchone()[2:] # exclude ids
-            self.conditions = dict(zip(HEADERS, values))
-        except TypeError:
-            ### if there is no conditions
-            self.conditions = None
         # endregion
 
         cursor.close()
@@ -491,14 +498,174 @@ class Skill:
 
         return None
 
-    # ---------- Activate Skill ----------
-    def activate(self, caster, target = None):
-        from src.functions import functions
-        # ------ Normal Physical Damage ------
-        if self.type == "physical":
-            damage = 0 # init
+    # ---------- Miss Animation ----------
+    def miss(self):
+        return None
 
-            for cast in range(self.multicast):
-                damage += functions.physical_dmg(caster, target, self.scale)
-            target.stats["HP"] -= damage
-            self.flash_enemy(target, damage)
+    # ---------- Avoid Animation ----------
+    def avoid(self):
+        return None
+
+    # ---------- Damage Reduction ----------
+    def dmg_reduction(stat_value: int):
+        reduction = 100 - 100 * (100/(stat_value + 100))
+        return reduction
+
+    # ---------- Activate Skill ----------
+    def activate(self, caster: Entity, target: Entity):
+        import random
+
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+
+        # region ----|1|---- Instances
+        cursor.execute("SELECT sequencer FROM skill_instances WHERE skill_id=?", (self.id,))
+        instances = len(cursor.fetchall())
+        # endregion
+
+        for instance in range(instances):
+
+            # region ----|1|---- Type
+            ''' Skill Damage Type'''
+
+            cursor.execute("SELECT type_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            type_id = cursor.fetchone()[0]
+
+            cursor.execute("SELECT type FROM skill_types WHERE id=?", (type_id,))
+            skill_type = cursor.fetchone()[0]
+            # endregion
+
+            # region ----|1|---- Element
+            cursor.execute("SELECT element_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            element_id = cursor.fetchone()[0]
+
+            cursor.execute("SELECT element FROM elements WHERE id=?", (element_id,))
+            element = cursor.fetchone()[0]
+            # endregion
+
+            # region ----|1|---- Source
+            cursor.execute("SELECT source_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            source_id = cursor.fetchone()[0]
+
+            cursor.execute("SELECT source FROM skill_source WHERE id=?", (source_id,))
+            source = cursor.fetchone()[0]
+            # endregion
+
+            # region ----|1|---- Check if it's damage, heal or condition
+            ### 1: damage, 0: heal, None: condition ###
+
+            cursor.execute("SELECT is_damage FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            is_damage = cursor.fetchone()[0]
+                # endregion
+
+            # region ----|1|---- Base Value
+            if is_damage != None:
+                cursor.execute("SELECT base_value FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                base_value = cursor.fetchone()[0]
+
+            # endregion
+
+            # region ----|1|---- Scale
+            if is_damage != None:
+                cursor.execute("SELECT scale FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                scale = cursor.fetchone()[0]
+
+            # endregion
+
+            # region ----|1|---- Condition
+            if is_damage == None:
+                cursor.execute("SELECT condition_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                condition_id = cursor.fetchone()[0]
+
+                cursor.execute("SELECT name FROM conditions WHERE id=?", (condition_id,))
+                condition = str(cursor.fetchone()[0])
+            # endregion
+
+            # region ----|1|---- Condition Stacks
+            if is_damage == None:
+                cursor.execute("SELECT condition_stacks FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                con_stacks = cursor.fetchone()[0]
+            # endregion
+
+            # region ----|1|---- Accuracy
+            cursor.execute("SELECT accuracy FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            skill_accuracy = cursor.fetchone()[0]
+
+            # endregion
+
+            # ~~~~~~~~~~ Apply ~~~~~~~~~~
+            # region ----|1|---- Hit/Miss/Avoid Check
+
+            # region ----|2|---- Hit/Miss
+            if skill_accuracy != None:
+                hit_percent = int((skill_accuracy * caster.stat('accuracy')) * 100)
+                hit = random.randint(1,100)
+
+                if hit > hit_percent:
+                    self.miss()
+                    continue
+                else:  pass
+
+                # endregion
+
+            # region ----|2|---- Avoid
+            if target != caster:
+
+                avoid_percent = int(target.stats["avoid"] * 100)
+                chance_percent = hit_percent - avoid_percent
+                hit = random.randint(1,hit_percent)
+
+                if hit > chance_percent:
+                    self.avoid()
+                    continue
+                else:  pass
+
+                # endregion
+
+            # endregion
+
+            # region ----|1|---- Value Calculation
+            if is_damage != None:
+
+                # region ----|2|---- Source Scale
+                value = base_value + (scale * source)
+                    # endregion
+
+                # region ----|2|---- Element Scale
+                if element != None:
+                    element_pow = element + '_pow'
+                    caster_element_pow = caster.stats[element_pow]
+                    value = (100+caster_element_pow)*value
+                # endregion
+
+                # region ----|2|---- Skill Type Reduction
+                if skill_type == 'physical':
+                    target_def = target.stat('def')
+                    reduction = self.dmg_reduction(target_def)
+
+                if skill_type == 'magical':
+                    target_mdef = target.stat('mdef')
+                    reduction = self.dmg_reduction(target_mdef)
+
+                value = (100-reduction)*value
+                    # endregion
+
+                # region ----|2|---- Value Element Reduction
+                if element != None:
+                    element_res = element + '_res'
+                    target_element_res = target.stats[element_res]
+                    value = (100-target_element_res)*value
+                    # endregion
+
+                # region ----|2|---- Value Random Gap
+                min_value = int(0.9*value)
+                max_value = int(1.1*value)
+                value = random.randint(min_value,max_value)
+                    # endregion
+
+            # endregion -|1|-
+
+            # region ----|1|---- Condition Handle
+            # endregion
+
+        cursor.close()
