@@ -1,5 +1,4 @@
 import pygame
-import math
 import os
 
 # ========== Tree ==========
@@ -8,15 +7,14 @@ from src.classes import screen, game_state
 
 # ========== (functions) ==========
 class Functions:
-    def __init__(self):
-        pass
+    def __init__(self):  pass
 
     # ~~~~~~~~~~ Highlight Button ~~~~~~~~~~
     def highlight_button(self, mouse_pos : property, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
         '''
         Blit a button on given surface
         '''
-        
+
         surface = screen.base_surface
 
         if text_rect.collidepoint(mouse_pos):
@@ -32,7 +30,7 @@ class Functions:
 
             highlighted_surface_size = (text_size[0] + 2 * sign_size[0] + 2*spacer,
                                         text_size[1])
-            
+
             # ~~~~~~~~~~ Blit ~~~~~~~~~~
             highlighted_surface = pygame.Surface(highlighted_surface_size)
             highlighted_surface.blit(sign_surface, (0, (text_size[1] - sign_size[1]) // 2))
@@ -59,7 +57,7 @@ class Functions:
         else:
             normal_surface = font.render(text, True, "Gray")
             surface.blit(normal_surface, text_rect)
-            
+
     # ~~~~~~~~~~ Text with Outline ~~~~~~~~~~
     def glowing_text(self, text : str, font : pygame.font, text_color : str, outline_color : str, outline_width : int):
         # Renderizar o texto com a cor do contorno
@@ -79,7 +77,7 @@ class Functions:
         text_surface = font.render(text, True, text_color)
         surface.blit(text_surface, (outline_width, outline_width))
 
-        return surface  
+        return surface
 
     # ~~~~~~~~~~ Esc Menu ~~~~~~~~~~
     def esc_menu(self):
@@ -90,29 +88,35 @@ class Functions:
             screen.clear_surfaces()
             mouse_pos = screen.mouse
 
-            # ----|1|---- Font Surfaces ----|1|----
+            # region ----|1|---- Font Surfaces
             continue_text = config.TITLE_FONT.render("Continue", True, "White")
             quit_text = config.TITLE_FONT.render("Quit", True, "White")
+            # endregion -|1|-
 
-            # ----|1|---- Rectangles ----|1|----
+            # region ----|1|---- Rectangles
             continue_text_rect = continue_text.get_rect(center=(config.game_width / 2, config.game_height / 2 - 80))
             quit_text_rect = quit_text.get_rect(center=(config.game_width / 2, config.game_height / 2 + 40))
+            # endregion -|1|-
 
-            # ----|1|---- Blit Button on base_surface ----|1|----
+            # region ----|1|---- Blit Button on base_surface
             self.highlight_button(mouse_pos, config.TITLE_FONT, "Continue", continue_text_rect)
             self.highlight_button(mouse_pos, config.TITLE_FONT, "Quit", quit_text_rect)
+            # endregion -|1|-
 
-            # ----|1|---- Display Blit ----|1|----
+            # region ----|1|---- Display Blit
             screen.blit_surface(screen.base_surface)
+            # endregion -|1|-
 
-            # ----|1|---- Event Handle ----|1|----
+            # region ----|1|---- Event Handle
+
             for event in pygame.event.get():
-                # ----|2|---- Quit ----|2|----
+                # region ----|2|---- Quit
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     exit()
-                
-                # ----|2|---- Videorisize ----|2|----
+                # endregion -|2|-
+
+                # region ----|2|---- Videorisize
                 elif event.type == pygame.VIDEORESIZE:
                     if event.size != screen.display_size:
                         if screen.fullscreen == False:
@@ -120,8 +124,9 @@ class Functions:
                                     f"    Event Size:{event.size}," +
                                     f"    Display Size:{screen.display_size}\n")
                             screen.resize(event)
+                # endregion -|2|-
 
-                # ----|2|---- Keydown ----|2|----
+                # region ----|2|---- Keydown
                 elif event.type == pygame.KEYDOWN:
                     print("*Keydown*")
                     if event.key == pygame.K_F11:
@@ -131,37 +136,48 @@ class Functions:
                     elif event.key == pygame.K_ESCAPE:
                         print("    Esc")
                         inside = False
+                # endregion -|2|-
 
-                # ----|2|---- Mouse Button ----|2|----
+                # region ----|2|---- Mouse Button
                 elif event.type == pygame.MOUSEBUTTONDOWN:
-                    # ----|3|---- Left Click ----|3|----
+
+                    # region ----|3|---- Left Click
                     if event.button == 1:
 
-                        # ----|4|---- CONTINUE ----|4|----
+                        # region ----|4|---- CONTINUE
                         if continue_text_rect.collidepoint(mouse_pos):
                             print("-> Continue <-\n")
                             inside = False
+                        # endregion -|4|-
 
-                        # ----|4|---- QUIT ----|4|----
+                        # region ----|4|---- QUIT
                         elif quit_text_rect.collidepoint(mouse_pos):
                             print("-> Quit <-\n")
                             game_state.state = "MENU"
-                            game_state.ongame_state = "menu"                    
+                            game_state.ongame_state = "menu"
                             inside = False
+                        # endregion -|4|-
 
-            # ----|1|---- Tick FPS ----|1|----
+                    # endregion -|3|-
+
+                # endregion -|2|-
+
+            # endregion -|1|-
+
+            # Tick FPS
             clock.tick(60)
 
         return None
 
     # ~~~~~~~~~~ Test for basic events ~~~~~~~~~~
     def basic_events(self, event):
-        # ----|1|---- Quit ----|1|----
+        # region ----|1|---- Quit
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
+        # endregion -|1|-
 
-        # ----|1|---- Video Resize ----|1|----
+        # region ----|1|---- Video Resize
         elif event.type == pygame.VIDEORESIZE:
             if event.size != screen.display_size:
                 if screen.fullscreen == False:
@@ -169,8 +185,9 @@ class Functions:
                             f"    Event Size:{event.size}," +
                             f"    Display Size:{screen.display_size}\n")
                     screen.resize(event)
+        # endregion -|1|-
 
-        # ----|1|---- Keydown ----|1|----
+        # region ----|1|---- Keydown
         elif event.type == pygame.KEYDOWN:
             print("*Keydown*")
             if event.key == pygame.K_F11:
@@ -182,6 +199,7 @@ class Functions:
                 if game_state.state != "MENU":
                     print("-> Menu <-")
                     self.esc_menu()
+        # endregion -|1|-
 
         return None
 
