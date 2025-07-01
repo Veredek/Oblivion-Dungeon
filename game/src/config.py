@@ -147,10 +147,14 @@ class Config:
 
         # region ----|1|---- Entities
 
-        # region ----|2|---- Tuple
-        ### Tuple of all entities names
+        # region ----|2|---- Tuples
+        ### Entity Attributes
+        cursor.execute("SELECT name FROM pragma_table_info('entity_attributes')")
+        self.ENTITY_ATTRIBUTES = tuple(att[0] for att in cursor.fetchall()[1:])
+
+        ### Entities names
         cursor.execute("SELECT name FROM entities")
-        self.entities_tuple = tuple(row[0] for row in cursor.fetchall())
+        self.ENTITIES_NAMES = tuple(row[0] for row in cursor.fetchall())
         # endregion -|2|-
 
         # region ----|2|---- Flashing Time
