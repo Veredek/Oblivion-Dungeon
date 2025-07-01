@@ -150,7 +150,9 @@ class Config:
         # region ----|2|---- Tuples
         ### Entity Attributes
         cursor.execute("SELECT name FROM pragma_table_info('entity_attributes')")
-        self.ENTITY_ATTRIBUTES = tuple(att[0] for att in cursor.fetchall()[1:])
+        upper_case = [att[0] for att in cursor.fetchall()[1:]]
+        lower_case = [att.lower() for att in upper_case]
+        self.ENTITY_ATTRIBUTES = tuple(upper_case + lower_case)
 
         ### Entities names
         cursor.execute("SELECT name FROM entities")
