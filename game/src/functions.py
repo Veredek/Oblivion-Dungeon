@@ -9,6 +9,10 @@ from src.classes import screen, game_state
 class Functions:
     def __init__(self):  pass
 
+    # ~~~~~~~~~~ Clamp ~~~~~~~~~~
+    def clamp(value, min_v, max_v):
+        return max(min_v, min(value, max_v))
+
     # ~~~~~~~~~~ Highlight Button ~~~~~~~~~~
     def highlight_button(self, mouse_pos : property, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
         '''
