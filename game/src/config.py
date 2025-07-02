@@ -154,6 +154,12 @@ class Config:
         lower_case = [att.lower() for att in upper_case]
         self.ENTITY_ATTRIBUTES = tuple(upper_case + lower_case)
 
+        ### Entity Stats
+        cursor.execute("SELECT name FROM pragma_table_info('entity_base_stats')")
+        upper_case = [stat[0] for stat in cursor.fetchall()[1:]]
+        lower_case = [stat.lower() for stat in upper_case]
+        self.ENTITY_STATS = tuple(upper_case + lower_case)
+
         ### Entities names
         cursor.execute("SELECT name FROM entities")
         self.ENTITIES_NAMES = tuple(row[0] for row in cursor.fetchall())
