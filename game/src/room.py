@@ -69,7 +69,6 @@ class Room:
                             skill = Skill("attack")
                             skill.activate(player, enemy)
                             self.dmg_timer = time.time()
-                            print(enemy.stats["HP"])
                     # ------ Escape ------
 
             # ----|1|---- Exit ----|1|----

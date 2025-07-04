@@ -10,6 +10,7 @@ from src.config import config
 # ~~~~~~~~~~ Screen ~~~~~~~~~~
 class Screen:
     def __init__(self):
+        # region ----|1|---- Display
         self.fullscreen = True
         self.maximized = False
 
@@ -17,11 +18,14 @@ class Screen:
         self.display = pygame.display.set_mode(self.display_size, pygame.FULLSCREEN)
         pygame.display.set_caption(config.GAME_TITLE)
         pygame.display.flip()
+        # endregion -|1|-
 
+        # region ----|1|---- Surfaces
         self.base_surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
         self.second_surface = pygame.Surface((config.BASE_WIDTH, config.BASE_HEIGHT), pygame.SRCALPHA)
         ### If another auxiliar surface is added, put it in extra_surfaces
         self.surfaces = [self.base_surface, self.second_surface]
+        # endregion -|1|-
 
     # ~~~~~~~~~~ Properties ~~~~~~~~~~
     # region ----|1|---- Offset x
@@ -602,6 +606,7 @@ class Skill:
                 hit = random.randint(1,100)
 
                 if hit > hit_percent:
+                    print("(miss!)")
                     self.miss()
                     continue
                 else:  pass
@@ -623,7 +628,7 @@ class Skill:
             # endregion -|1|-
 
             # region ----|1|---- Value Calculation
-            if is_damage != None:
+            if is_damage != None: # can be 0 (heal)
 
                 # region ----|2|---- Source Scale
                 value = base_value + (scale * source)
