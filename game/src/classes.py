@@ -206,13 +206,58 @@ game_state = GameState()
 
 # ~~~~~~~~~~ Entities ~~~~~~~~~~
 class Entity:
+    # ~~~~~~~~~~ Class Config ~~~~~~~~~~
+    _config = False
+    def __new__(cls, *args, **kwargs):
+        if not cls._config:
+            cls.self_config()
+            cls._config = True
+        return super().__new__(cls)
+
+    @classmethod
+    def self_config(cls):
+
+        # region ----|1|---- Attributes
+        for attribute in config.ENTITY_ATTRIBUTES:
+
+            getter = lambda self, attr=attribute:  max(0, self._attributes.get(attr))
+
+            setter = lambda self, value, attr=attribute:  self._attributes.__setitem__(attr, value)
+
+            setattr(cls, attribute, property(getter, setter))
+        # endregion -|1|-
+
+        # region ----|1|---- Not Elemental Stats
+        for stat in [stat for stat in config.ENTITY_STATS if 'res' not in stat.lower() and 'pow' not in stat.lower()]:
+
+            # SyntaxError handle
+            if stat == 'def':  stat = 'Def'
+
+            getter = lambda self, s=stat:  max(0, (self._stat_from_attributes(s) + self._stats.get(s)))
+
+            setter = lambda self, value, s=stat:  self._stats.__setitem__(s, value)
+
+            setattr(cls, stat, property(getter,setter))
+        # endregion -|1|-
+
+        # region ----|1|---- Elemental Stats
+        for stat in [stat for stat in config.ENTITY_STATS if 'res' in stat.lower() or 'pow' in stat.lower()]:
+            from src.functions import functions as f
+
+            getter = lambda self, s=stat:  f.clamp((self._stat_from_attributes(s) + self._stats.get(s)), -999, 999)
+
+            setter = lambda self, value, s=stat:  self._stats.__setitem__(s, value)
+
+            setattr(cls, stat, property(getter,setter))
+        # endregion -|1|-
+
     # ~~~~~~~~~~ Init ~~~~~~~~~~
     def __init__(self, name: str):
         from src.functions import functions
         conn = sqlite3.connect("game\src\database\database.sqlite")
         cursor = conn.cursor()
 
-        assert name in config.entities_tuple, "Not a valid entity name"
+        assert name in config.ENTITIES_NAMES, "Not a valid entity name"
 
         self.flashing = False
 
@@ -238,16 +283,15 @@ class Entity:
         # region ----|1|---- Attributes
 
         # region ----|2|---- Proper
-        cursor.execute("SELECT * FROM entity_attributes WHERE id=?",(self.id,))
+        cursor.execute("SELECT * FROM entity_attributes WHERE entity_id=?",(self.id,))
         ATTRIBUTES = [desc[0] for desc in cursor.description][1:] # exclude id
         values = cursor.fetchone()[1:] # exclude id
-        self.ATTRIBUTES = dict(zip(ATTRIBUTES, values))
+        self._attributes = dict(zip(ATTRIBUTES, values))
         # endregion -|2|-
 
         # region ----|2|---- Current
-        self.attributes = dict()
         attributes = [ATTRIBUTE.lower() for ATTRIBUTE in ATTRIBUTES]
-        for attribute,value in zip(attributes,values):    self.attributes[attribute] = value
+        for attribute,value in zip(attributes,values):    self._attributes[attribute] = value
         # endregion -|2|-
 
         self.attributes_points = 0
@@ -257,20 +301,16 @@ class Entity:
         ### Lower case (e.g. "hp") means current value, Upper case (e.g. "HP") means proper value ###
 
         # region ----|2|---- Proper
-        cursor.execute("SELECT * FROM entity_base_stats WHERE id=?",(self.id,))
+        cursor.execute("SELECT * FROM entity_base_stats WHERE entity_id=?",(self.id,))
         STATS = [desc[0] for desc in cursor.description][1:] # exclude id
         values = cursor.fetchone()[1:] # exclude id
-        self.STATS = dict(zip(STATS, values))
+        self._stats = dict(zip(STATS, values))
         # endregion -|2|-
 
         # region ----|2|---- Current
-        self.stats = dict()
-
-        ''' This can be negative, and in that case, the stat property will return 0.
-            Status effects will affect here (modified when applied, and unmodified when expired).'''
-
         stats = [STAT.lower() for STAT in STATS]
-        for stat,value in zip(stats,values):    self.stats[stat] = value
+        stats = ['Def' if stat == 'def' else stat for stat in stats]
+        for stat,value in zip(stats,values):    self._stats[stat] = value
         # endregion -|2|-
 
         # endregion -|1|-
@@ -281,8 +321,7 @@ class Entity:
         skills_ids = cursor.fetchall()[0]
         for skill_id in skills_ids:
             cursor.execute("SELECT name FROM skills WHERE id=?",(skill_id,))
-            skill_name = cursor.fetchone()
-            print(skill_name)
+            skill_name = cursor.fetchone()[0]
             self.skills.append(skill_name)
         # endregion -|1|-
 
@@ -308,6 +347,9 @@ class Entity:
         # region ----|1|---- Conditions
         self.conditions = {}
         # endregion -|1|-
+
+        self._hp = self.MAX_HP
+        self._mp = self.MAX_MP
 
         # ~~~~~~~~~~ Exp ~~~~~~~~~~
         if self.player_bool:    self.total_exp = int(0)
@@ -354,42 +396,75 @@ class Entity:
 
     # endregion -|1|-
 
-    # region ----|1|---- Stats
+    # region ----|1|---- hp/mp
     @property
-    def stat(self, name: str):
-        ''' Use lowercase.
-            Returns the final current value of the stat.'''
+    def hp(self):  return self._hp
 
-        attribute_stat = self._stats_from_attributes(name)[name]
-        return attribute_stat + self.stats[name]
+    @hp.setter
+    def hp(self, value):  self._hp = min(value, self.max_hp)
 
+    @property
+    def mp(self):  return self._hp
+
+    @mp.setter
+    def mp(self, value):  self._hm = min(value, self.max_mp)
     # endregion -|1|-
 
     # ~~~~~~~~~~ Functions ~~~~~~~~~~
-    def _stats_from_attributes(self, attribute: str):
-        ''' Use lowercase'''
-        assert attribute in ['str', 'dex', 'wis', 'fort', 'res'], "Not a valid attribute"
+    def _value_of_stat(self, stat: str):
+        value = self._stat_from_attributes(stat) + self._stats[stat]
+        if value > 0:  return value
+        else:          return 0
 
-        stats = dict()
+    def _stat_from_attributes(self, stat: str):
 
-        if attribute == 'str':
-            stats['hp_regen'] =    int(0.1 * self.attributes['str'])
-            stats['crit_dmg'] =    0.025 * self.attributes['str']
-        elif attribute == 'dex':
-            stats['accuracy'] =    0.02 * self.attributes['dex']
-            stats['avoid'] =       0.005 * self.attributes['dex']
-            stats['crit_chance'] = 0.005 * self.attributes['dex']
-        elif attribute == 'wis':
-            stats['mp_regen'] =    int(0.1 * self.attributes['wis'])
-            stats['mp'] =          1 * self.attributes['wis']
-        elif attribute == 'fort':
-            stats['hp'] =          2 * self.attributes['fort']
-            stats['def'] =         1 * self.attributes['fort']
-        elif attribute == 'res':
-            stats['resist'] =      0.005 * self.attributes['fort']
-            stats['mdef'] =        1 * self.attributes['res']
+        formulas = {
+            'max_hp':      lambda: 2 * self.fort,
+            'MAX_HP':      lambda: 2 * self.FORT,
 
-        return stats
+            'hp_regen':    lambda: int(0.1 * self.str),
+            'HP_REGEN':    lambda: int(0.1 * self.STR),
+
+            'max_mp':          lambda: 1 * self.wis,
+            'MAX_MP':          lambda: 1 * self.WIS,
+
+            'mp_regen':    lambda: int(0.1 * self.wis),
+            'MP_REGEN':    lambda: int(0.1 * self.WIS),
+
+            'Def':         lambda: 1 * self.fort,
+            'DEF':         lambda: 1 * self.FORT,
+
+            'mdef':        lambda: 1 * self.res,
+            'MDEF':        lambda: 1 * self.RES,
+
+            # multiplier
+            'crit_chance': lambda: 0.005 * self.dex,
+            'CRIT_CHANCE': lambda: 0.005 * self.DEX,
+
+            # multiplier
+            'crit_dmg':    lambda: 0.025 * self.str,
+            'CRIT_DMG':    lambda: 0.025 * self.STR,
+
+            # multiplier
+            'accuracy':    lambda: 0.02 * self.dex,
+            'ACCURACY':    lambda: 0.02 * self.DEX,
+
+            # multiplier
+            'avoid':       lambda: 0.005 * self.dex,
+            'AVOID':       lambda: 0.005 * self.DEX,
+
+            # multiplier
+            'resist':      lambda: 0.005 * self.res,
+            'RESIST':      lambda: 0.005 * self.RES,
+        }
+
+        return formulas[stat]()
+
+    def dmg_reduction(self, type: str):
+        '''Returns a value between 0 and 100'''
+        if   type == 'physical':  return 100 - 100 * (100/(self.Def + 100))
+        elif type == 'magical':   return 100 - 100 * (100/(self.mdef + 100))
+        else:                     return 0
 
     def image(self):
         size = self.img.get_size()
@@ -512,11 +587,6 @@ class Skill:
     def avoid(self):
         return None
 
-    # ---------- Damage Reduction ----------
-    def dmg_reduction(stat_value: int):
-        reduction = 100 - 100 * (100/(stat_value + 100))
-        return reduction
-
     # ---------- Activate Skill ----------
     def activate(self, caster: Entity, target: Entity):
         import random
@@ -524,12 +594,16 @@ class Skill:
         conn = sqlite3.connect("game\src\database\database.sqlite")
         cursor = conn.cursor()
 
+        print(f"\n--- Skill({self.name}): caster({caster.name}) -> target({target.name}) ---")
+
         # region ----|1|---- Instances
         cursor.execute("SELECT sequencer FROM skill_instances WHERE skill_id=?", (self.id,))
         instances = len(cursor.fetchall())
         # endregion -|1|-
 
         for instance in range(instances):
+
+            # ~~~~~~~~~~ Instance Values ~~~~~~~~~~
 
             # region ----|1|---- Type
             ''' Skill Damage Type'''
@@ -546,7 +620,8 @@ class Skill:
             element_id = cursor.fetchone()[0]
 
             cursor.execute("SELECT element FROM elements WHERE id=?", (element_id,))
-            element = cursor.fetchone()[0]
+            try:    element = cursor.fetchone()[0]
+            except: element = None
             # endregion -|1|-
 
             # region ----|1|---- Source
@@ -598,31 +673,37 @@ class Skill:
             # endregion -|1|-
 
             # ~~~~~~~~~~ Apply ~~~~~~~~~~
+            print(f"instance: {instance + 1}/{instances}")
             # region ----|1|---- Hit/Miss/Avoid Check
 
             # region ----|2|---- Hit/Miss
             if skill_accuracy != None:
-                hit_percent = int((skill_accuracy * caster.stat('accuracy')) * 100)
+                hit_percent = int((skill_accuracy * caster.accuracy) * 100)
                 hit = random.randint(1,100)
+
+                print(f"skill accuracy: {skill_accuracy}, caster accuracy: {caster.accuracy}")
+                print(f"hit chance: {hit_percent}%,", end=" ")
 
                 if hit > hit_percent:
                     print("(miss!)")
                     self.miss()
                     continue
-                else:  pass
             # endregion -|2|-
 
             # region ----|2|---- Avoid
             if target != caster:
 
-                avoid_percent = int(target.stats["avoid"] * 100)
-                chance_percent = hit_percent - avoid_percent
-                hit = random.randint(1,hit_percent)
+                avoid_stat_percent = int(100*target.avoid)
+                avoid_chance_percent = min(int(100*(avoid_stat_percent/hit_percent)), 100)
+                hit = random.randint(1, 100)
 
-                if hit > chance_percent:
+                print(f"avoid chance: {avoid_chance_percent}%", end=" ")
+
+                if hit < avoid_chance_percent:
+                    print("(avoid!)")
                     self.avoid()
                     continue
-                else:  pass
+                else:  print("(hit!)")
             # endregion -|2|-
 
             # endregion -|1|-
@@ -630,40 +711,38 @@ class Skill:
             # region ----|1|---- Value Calculation
             if is_damage != None: # can be 0 (heal)
 
-                # region ----|2|---- Source Scale
-                value = base_value + (scale * source)
-                # endregion -|2|-
+                # region ----|2|---- Scale/Reduction
+                value = base_value
 
-                # region ----|2|---- Element Scale
-                if element != None:
-                    element_pow = element + '_pow'
-                    caster_element_pow = caster.stats[element_pow]
-                    value = (100+caster_element_pow)*value
-                # endregion -|2|-
+                # Source Scale
+                if source:                   value += scale * getattr(caster, source)
 
-                # region ----|2|---- Skill Type Reduction
-                if skill_type == 'physical':
-                    target_def = target.stat('def')
-                    reduction = self.dmg_reduction(target_def)
+                # Element Scale
+                if element:                  value *= 1 + getattr(caster, (element + '_pow'))/100
 
-                if skill_type == 'magical':
-                    target_mdef = target.stat('mdef')
-                    reduction = self.dmg_reduction(target_mdef)
+                # Type Reduction
+                if skill_type:               value *= 1 - target.dmg_reduction(skill_type)/100
 
-                value = (100-reduction)*value
-                # endregion -|2|-
+                # Element Reduction
+                if element:                  value *= 1 - getattr(target, (element + '_res'))/100
 
-                # region ----|2|---- Value Element Reduction
-                if element != None:
-                    element_res = element + '_res'
-                    target_element_res = target.stats[element_res]
-                    value = (100-target_element_res)*value
                 # endregion -|2|-
 
                 # region ----|2|---- Value Random Gap
                 min_value = int(0.9*value)
                 max_value = int(1.1*value)
                 value = random.randint(min_value,max_value)
+                # endregion -|2|-
+
+                # region ----|2|---- Damage Infliction
+                if is_damage == 1 :
+                    print(f"damage: {value}, target hp: {target.hp}/{target.max_hp}", end=" -> ")
+                    target.hp -= value
+                    print(f"{target.hp}/{target.max_hp}")
+                elif is_damage == 0 :
+                    print(f"heal: {value}, target hp: {target.hp}/{target.max_hp}", end=" -> ")
+                    target.hp += value
+                    print(f"{target.hp}/{target.max_hp}")
                 # endregion -|2|-
 
             # endregion -|1|-
