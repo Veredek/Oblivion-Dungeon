@@ -751,3 +751,67 @@ class Skill:
             # endregion -|1|-
 
         cursor.close()
+
+# ~~~~~~~~~~ Conditions ~~~~~~~~~~
+class Condition:
+
+    # ~~~~~~~~~~ Class Config ~~~~~~~~~~
+    _config = False
+    def __new__(cls, *args, **kwargs):
+        if not cls._config:
+            cls.self_config()
+            cls._config = True
+        return super().__new__(cls)
+
+    @classmethod
+    def self_config(cls):
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+
+        # region ----|1|---- Tuple of all valid Conditions
+        cursor.execute("SELECT name FROM conditions")
+        cls.CONDITIONS = tuple([con[0] for con in cursor.fetchall()])
+        # endregion -|1|-
+
+        cursor.close()
+
+    def __init__(self):
+        conn = sqlite3.connect("game\src\database\database.sqlite")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT name FROM conditions")
+        self.CONDITIONS = [condition[0] for condition in cursor.fetchall()]
+
+        self.UNSTACKABLE = ['stun',
+                            'sleep']
+
+        cursor.close()
+
+    def apply(self, condition: str, target: Entity, stacks: int = None):
+
+        # ---------- Unstackable ----------
+        if condition in self.UNSTACKABLE:
+            if target.conditions[condition] == 0:    target.conditions[condition] = 1
+
+        # ---------- Stackable ----------
+        else:
+            target.conditions[condition] += stacks
+
+    def start_turn(self, entity: Entity):
+        # region ----|1|---- Bleed
+        if entity.conditions['bleed'] != 0:
+            damage = int((entity.conditions['bleed'] / 100) * entity.stats['HP'])
+            entity.stats['hp'] -= damage
+            entity.conditions['bleed'] -= 1
+        # endregion -|1|-
+
+        # region ----|1|---- Poison
+        if entity.conditions['poison'] != 0:
+            damage = entity.conditions['poison']
+            entity.stats['hp']
+        # endregion -|1|-
+
+        # region ----|1|---- Burn
+        if entity.conditions['burn'] != 0:
+            damage = entity.conditions['burn']
+        # endregion -|1|-
