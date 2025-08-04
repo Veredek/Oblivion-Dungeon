@@ -229,5 +229,18 @@ class Functions:
         else:
             screen.base_surface.blit(text_surface, text_rect)
 
+    # ~~~~~~~~~~ Measure Function Time ~~~~~~~~~~
+    def timefn(fn: function):
+        '''(Decorator): Measures function time of operation'''
+        @wraps(fn)
+        def measure_time(*args, **kwargs):
+            t1 = time.time()
+            result = fn(*args, **kwargs)
+            t2 = time.time()
+            print(f"@timefn: {fn.__name__} took {t2 - t1} seconds")
+            return result
+
+        return measure_time
+
 # ====== Instaciation ======
 functions = Functions()
