@@ -232,7 +232,7 @@ class Functions:
             screen.base_surface.blit(text_surface, text_rect)
 
     # ~~~~~~~~~~ Measure Function Time ~~~~~~~~~~
-    def timefn(fn: function):
+    def timefn(fn):
         '''(Decorator): Measures function time of operation'''
         @wraps(fn)
         def measure_time(*args, **kwargs):
