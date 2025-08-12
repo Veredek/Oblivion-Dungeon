@@ -755,15 +755,10 @@ class Condition:
         # region ----|1|---- Tuple of all valid Conditions
         db.execute("SELECT name FROM conditions")
         cls.CONDITIONS = tuple([con[0] for con in db.cursor.fetchall()])
-        # endregion -|1|-
 
-    def __init__(self):
-        db.execute("SELECT name FROM conditions")
-        self.CONDITIONS = [condition[0] for condition in db.cursor.fetchall()]
-
-        self.UNSTACKABLE = ['stun',
+        cls.UNSTACKABLE = ['stun',
                             'sleep']
-
+        # endregion -|1|-
 
     def apply(self, condition: str, target: Entity, stacks: int = None):
 
