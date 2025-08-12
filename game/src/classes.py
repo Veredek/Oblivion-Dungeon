@@ -4,7 +4,7 @@ import sqlite3
 import time
 
 # ========== Tree ==========
-from src.config import config
+from src.config import config, db
 
 # ========== (classes) ==========
 # ~~~~~~~~~~ Screen ~~~~~~~~~~
@@ -254,16 +254,14 @@ class Entity:
     # ~~~~~~~~~~ Init ~~~~~~~~~~
     def __init__(self, name: str):
         from src.functions import functions
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
 
         assert name in config.ENTITIES_NAMES, "Not a valid entity name"
 
         self.flashing = False
 
         # region ----|1|---- Id
-        cursor.execute("SELECT id FROM Entities WHERE name=?", (name,))
-        self.id = cursor.fetchone()[0]
+        db.execute("SELECT id FROM Entities WHERE name=?", (name,))
+        self.id = db.cursor.fetchone()[0]
         # endregion -|1|-
 
         # region ----|1|---- Name
@@ -283,9 +281,9 @@ class Entity:
         # region ----|1|---- Attributes
 
         # region ----|2|---- Proper
-        cursor.execute("SELECT * FROM entity_attributes WHERE entity_id=?",(self.id,))
-        ATTRIBUTES = [desc[0] for desc in cursor.description][1:] # exclude id
-        values = cursor.fetchone()[1:] # exclude id
+        db.execute("SELECT * FROM entity_attributes WHERE entity_id=?",(self.id,))
+        ATTRIBUTES = [desc[0] for desc in db.cursor.description][1:] # exclude id
+        values = db.cursor.fetchone()[1:] # exclude id
         self._attributes = dict(zip(ATTRIBUTES, values))
         # endregion -|2|-
 
@@ -301,9 +299,9 @@ class Entity:
         ### Lower case (e.g. "hp") means current value, Upper case (e.g. "HP") means proper value ###
 
         # region ----|2|---- Proper
-        cursor.execute("SELECT * FROM entity_base_stats WHERE entity_id=?",(self.id,))
-        STATS = [desc[0] for desc in cursor.description][1:] # exclude id
-        values = cursor.fetchone()[1:] # exclude id
+        db.execute("SELECT * FROM entity_base_stats WHERE entity_id=?",(self.id,))
+        STATS = [desc[0] for desc in db.cursor.description][1:] # exclude id
+        values = db.cursor.fetchone()[1:] # exclude id
         self._stats = dict(zip(STATS, values))
         # endregion -|2|-
 
@@ -317,17 +315,17 @@ class Entity:
 
         # region ----|1|---- Skills
         self.skills = []
-        cursor.execute("SELECT skill_id FROM entity_skills WHERE entity_id=?",(self.id,))
-        skills_ids = cursor.fetchall()[0]
+        db.execute("SELECT skill_id FROM entity_skills WHERE entity_id=?",(self.id,))
+        skills_ids = db.cursor.fetchall()[0]
         for skill_id in skills_ids:
-            cursor.execute("SELECT name FROM skills WHERE id=?",(skill_id,))
-            skill_name = cursor.fetchone()[0]
+            db.execute("SELECT name FROM skills WHERE id=?",(skill_id,))
+            skill_name = db.cursor.fetchone()[0]
             self.skills.append(skill_name)
         # endregion -|1|-
 
         # region ----|1|---- Inventory
         self.inventory = []
-        # cursor.execute("SELECT")
+        # db.execute("SELECT")
         # endregion -|1|-
 
         # region ----|1|---- Equipaments
@@ -353,8 +351,6 @@ class Entity:
 
         # ~~~~~~~~~~ Exp ~~~~~~~~~~
         if self.player_bool:    self.total_exp = int(0)
-
-        cursor.close()
 
     # ~~~~~~~~~~ String ~~~~~~~~~~
     def __str__(self):
@@ -496,22 +492,17 @@ class Skill:
     def __init__(self, name: str):
         assert name in config.skills_tuple
 
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
-
         self.name = name
 
         # region ----|1|---- Id
-        cursor.execute("SELECT id FROM skills WHERE name=?",(self.name,))
-        self.id = cursor.fetchone()[0]
+        db.execute("SELECT id FROM skills WHERE name=?",(self.name,))
+        self.id = db.cursor.fetchone()[0]
         # endregion -|1|-
 
         # region ----|1|---- Text
-        cursor.execute("SELECT text FROM skills WHERE name=?",(self.name,))
-        self.text = cursor.fetchone()[0]
+        db.execute("SELECT text FROM skills WHERE name=?",(self.name,))
+        self.text = db.cursor.fetchone()[0]
         # endregion -|1|-
-
-        cursor.close()
 
     # ---------- Str ----------
     def __str__(self):
@@ -591,14 +582,11 @@ class Skill:
     def activate(self, caster: Entity, target: Entity):
         import random
 
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
-
         print(f"\n--- Skill({self.name}): caster({caster.name}) -> target({target.name}) ---")
 
         # region ----|1|---- Instances
-        cursor.execute("SELECT sequencer FROM skill_instances WHERE skill_id=?", (self.id,))
-        instances = len(cursor.fetchall())
+        db.execute("SELECT sequencer FROM skill_instances WHERE skill_id=?", (self.id,))
+        instances = len(db.cursor.fetchall())
         # endregion -|1|-
 
         for instance in range(instances):
@@ -608,68 +596,68 @@ class Skill:
             # region ----|1|---- Type
             ''' Skill Damage Type'''
 
-            cursor.execute("SELECT type_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-            type_id = cursor.fetchone()[0]
+            db.execute("SELECT type_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            type_id = db.cursor.fetchone()[0]
 
-            cursor.execute("SELECT type FROM skill_types WHERE id=?", (type_id,))
-            skill_type = cursor.fetchone()[0]
+            db.execute("SELECT type FROM skill_types WHERE id=?", (type_id,))
+            skill_type = db.cursor.fetchone()[0]
             # endregion -|1|-
 
             # region ----|1|---- Element
-            cursor.execute("SELECT element_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-            element_id = cursor.fetchone()[0]
+            db.execute("SELECT element_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            element_id = db.cursor.fetchone()[0]
 
-            cursor.execute("SELECT element FROM elements WHERE id=?", (element_id,))
-            try:    element = cursor.fetchone()[0]
+            db.execute("SELECT element FROM elements WHERE id=?", (element_id,))
+            try:    element = db.cursor.fetchone()[0]
             except: element = None
             # endregion -|1|-
 
             # region ----|1|---- Source
-            cursor.execute("SELECT source_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-            source_id = cursor.fetchone()[0]
+            db.execute("SELECT source_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            source_id = db.cursor.fetchone()[0]
 
-            cursor.execute("SELECT source FROM skill_source WHERE id=?", (source_id,))
-            source = cursor.fetchone()[0]
+            db.execute("SELECT source FROM skill_source WHERE id=?", (source_id,))
+            source = db.cursor.fetchone()[0]
             # endregion -|1|-
 
             # region ----|1|---- Check if it's damage, heal or condition
             ### 1: damage, 0: heal, None: condition ###
 
-            cursor.execute("SELECT is_damage FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-            is_damage = cursor.fetchone()[0]
+            db.execute("SELECT is_damage FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            is_damage = db.cursor.fetchone()[0]
             # endregion -|1|-
 
             # region ----|1|---- Base Value
             if is_damage != None:
-                cursor.execute("SELECT base_value FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-                base_value = cursor.fetchone()[0]
+                db.execute("SELECT base_value FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                base_value = db.cursor.fetchone()[0]
 
             # endregion -|1|-
 
             # region ----|1|---- Scale
             if is_damage != None:
-                cursor.execute("SELECT scale FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-                scale = cursor.fetchone()[0]
+                db.execute("SELECT scale FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                scale = db.cursor.fetchone()[0]
             # endregion -|1|-
 
             # region ----|1|---- Condition
             if is_damage == None:
-                cursor.execute("SELECT condition_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-                condition_id = cursor.fetchone()[0]
+                db.execute("SELECT condition_id FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                condition_id = db.cursor.fetchone()[0]
 
-                cursor.execute("SELECT name FROM conditions WHERE id=?", (condition_id,))
-                condition = str(cursor.fetchone()[0])
+                db.execute("SELECT name FROM conditions WHERE id=?", (condition_id,))
+                condition = str(db.cursor.fetchone()[0])
             # endregion -|1|-
 
             # region ----|1|---- Condition Stacks
             if is_damage == None:
-                cursor.execute("SELECT condition_stacks FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-                con_stacks = cursor.fetchone()[0]
+                db.execute("SELECT condition_stacks FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+                con_stacks = db.cursor.fetchone()[0]
             # endregion -|1|-
 
             # region ----|1|---- Accuracy
-            cursor.execute("SELECT accuracy FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-            skill_accuracy = cursor.fetchone()[0]
+            db.execute("SELECT accuracy FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            skill_accuracy = db.cursor.fetchone()[0]
             # endregion -|1|-
 
             # ~~~~~~~~~~ Apply ~~~~~~~~~~
@@ -750,8 +738,6 @@ class Skill:
             # region ----|1|---- Condition Handle
             # endregion -|1|-
 
-        cursor.close()
-
 # ~~~~~~~~~~ Conditions ~~~~~~~~~~
 class Condition:
 
@@ -765,27 +751,19 @@ class Condition:
 
     @classmethod
     def self_config(cls):
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
 
         # region ----|1|---- Tuple of all valid Conditions
-        cursor.execute("SELECT name FROM conditions")
-        cls.CONDITIONS = tuple([con[0] for con in cursor.fetchall()])
+        db.execute("SELECT name FROM conditions")
+        cls.CONDITIONS = tuple([con[0] for con in db.cursor.fetchall()])
         # endregion -|1|-
 
-        cursor.close()
-
     def __init__(self):
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
-
-        cursor.execute("SELECT name FROM conditions")
-        self.CONDITIONS = [condition[0] for condition in cursor.fetchall()]
+        db.execute("SELECT name FROM conditions")
+        self.CONDITIONS = [condition[0] for condition in db.cursor.fetchall()]
 
         self.UNSTACKABLE = ['stun',
                             'sleep']
 
-        cursor.close()
 
     def apply(self, condition: str, target: Entity, stacks: int = None):
 

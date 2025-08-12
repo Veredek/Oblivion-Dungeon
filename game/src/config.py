@@ -1,5 +1,6 @@
 import pygame
 import sqlite3
+import atexit
 import math
 from screeninfo import get_monitors, Monitor
 
@@ -63,12 +64,62 @@ def get_maxresolution(monitor : Monitor, monitor_index : int, monitor_scale: flo
     print(f"Game Max Resolution: {MAX_RESOLUTION}")
     return MAX_RESOLUTION
 
+# ========== (databese connection) ==========
+class DatabaseConnection:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            cls._instance._initialize()
+            atexit.register(cls._instance.close)
+        return cls._instance
+
+    def _initialize(self):
+        self.conn = sqlite3.connect("game\src\database\database.sqlite")
+        self.conn.execute("PRAGMA journal_mode=WAL")
+        self.conn.execute("PRAGMA foreign_keys = ON")
+
+        self.cursor = self.conn.cursor()
+
+        print(f"Database connected")
+
+    def execute(self, query, params=()):
+        try:
+            return self.cursor.execute(query, params)
+        except sqlite3.Error as e:
+            print(f"Database error: {e}")
+            raise
+
+    def commit(self):
+        try:
+            self.conn.commit()
+        except sqlite3.Error as e:
+            print(f"Commit failed: {e}")
+            self.conn.rollback()
+            raise
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if exc_type:  self.conn.rollback()
+        else:         self.commit()
+        return False
+
+    def close(self):
+        if hasattr(self, 'cursor') and self.cursor:
+            self.cursor.close()
+        if hasattr(self, 'conn') and self.conn:
+            self.conn.close()
+            print("Database connection closed")
+
+db = DatabaseConnection()
+
 # ========== (config) ==========
 class Config:
     # ~~~~~~~~~~ Init ~~~~~~~~~~
     def __init__(self):
-        conn = sqlite3.connect("game\src\database\database.sqlite")
-        cursor = conn.cursor()
 
         # region ----|1|---- Game Title
         self.GAME_TITLE = "Oblivion Dungeon"
@@ -149,20 +200,20 @@ class Config:
 
         # region ----|2|---- Tuples
         ### Entity Attributes
-        cursor.execute("SELECT name FROM pragma_table_info('entity_attributes')")
-        upper_case = [att[0] for att in cursor.fetchall()[1:]]
+        db.execute("SELECT name FROM pragma_table_info('entity_attributes')")
+        upper_case = [att[0] for att in db.cursor.fetchall()[1:]]
         lower_case = [att.lower() for att in upper_case]
         self.ENTITY_ATTRIBUTES = tuple(upper_case + lower_case)
 
         ### Entity Stats
-        cursor.execute("SELECT name FROM pragma_table_info('entity_base_stats')")
-        upper_case = [stat[0] for stat in cursor.fetchall()[1:]]
+        db.execute("SELECT name FROM pragma_table_info('entity_base_stats')")
+        upper_case = [stat[0] for stat in db.cursor.fetchall()[1:]]
         lower_case = [stat.lower() for stat in upper_case]
         self.ENTITY_STATS = tuple(upper_case + lower_case)
 
         ### Entities names
-        cursor.execute("SELECT name FROM entities")
-        self.ENTITIES_NAMES = tuple(row[0] for row in cursor.fetchall())
+        db.execute("SELECT name FROM entities")
+        self.ENTITIES_NAMES = tuple(row[0] for row in db.cursor.fetchall())
         # endregion -|2|-
 
         # region ----|2|---- Flashing Time
@@ -174,11 +225,10 @@ class Config:
 
         # region ----|1|---- Skills
         ### Tuple of all skills names
-        cursor.execute("SELECT name FROM skills")
-        self.skills_tuple = tuple(row[0] for row in cursor.fetchall())
+        db.execute("SELECT name FROM skills")
+        self.skills_tuple = tuple(row[0] for row in db.cursor.fetchall())
         # endregion -|1|-
 
-        cursor.close()
     # ~~~~~~~~~~ Properties ~~~~~~~~~~
     # region ----|1|---- Width/Height
 
