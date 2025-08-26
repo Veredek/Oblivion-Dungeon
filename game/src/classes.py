@@ -569,9 +569,8 @@ class Entity:
 
         # region ----|1|---- Elemental Stats
         for stat in [stat for stat in config.ENTITY_STATS if 'res' in stat.lower() or 'pow' in stat.lower()]:
-            from src.functions import functions as f
 
-            getter = lambda self, s=stat:  f.clamp((self._stat_from_attributes(s) + self._stats.get(s)), -999, 999)
+            getter = lambda self, s=stat:  math.clamp((self._stat_from_attributes(s) + self._stats.get(s)), -999, 999)
 
             setter = lambda self, value, s=stat:  self._stats.__setitem__(s, value)
 
@@ -580,7 +579,7 @@ class Entity:
 
     # ~~~~~~~~~~ Init ~~~~~~~~~~
     def __init__(self, name: str):
-        from src.functions import functions
+        from src.functions import load_image
 
         assert name in config.ENTITIES_NAMES, "Not a valid entity name"
 
@@ -602,7 +601,7 @@ class Entity:
 
         # region ----|1|---- Image
         if not self.player_bool:
-            self.img = functions.load_image(self.name)
+            self.img = load_image(self.name)
         # endregion -|1|-
 
         # region ----|1|---- Attributes

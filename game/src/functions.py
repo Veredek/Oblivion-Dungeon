@@ -9,7 +9,7 @@ from src.classes import screen, game_state, hud
 
 # ========== Functions ==========
 # ~~~~~~~~~~ Test for basic events ~~~~~~~~~~
-def basic_events(self, event):
+def basic_events(event):
     # region ----|1|---- Quit
     if event.type == pygame.QUIT:
         pygame.quit()
@@ -43,7 +43,7 @@ def basic_events(self, event):
     return None
 
 # ~~~~~~~~~~ Load Image ~~~~~~~~~~
-def load_image(self, name: str):
+def load_image(name: str):
     fullname = os.path.join("game", "assets", "images", f"{name}.png")
     image = pygame.image.load(fullname)
     return image
