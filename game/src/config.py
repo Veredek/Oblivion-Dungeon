@@ -1,6 +1,7 @@
 import pygame
 import sqlite3
 import atexit
+from pathlib import Path
 import math
 from screeninfo import get_monitors, Monitor
 
@@ -64,6 +65,20 @@ def get_maxresolution(monitor : Monitor, monitor_index : int, monitor_scale: flo
     print(f"Game Max Resolution: {MAX_RESOLUTION}")
     return MAX_RESOLUTION
 
+def get_font(font: str, size: int):
+    path = Path(__file__).resolve()
+
+    assert 'game' in [p.name for p in path.parents], \
+        "'game' directory not found in path"
+
+    # going up on dirs to get in game dir (path.name == 'game')
+    while path.name != 'game':  path = path.parent
+
+    # get to font abs path
+    font_path = path / 'assets' / 'fonts' / font
+
+    return pygame.font.Font(str(font_path), size)
+
 # ========== (databese connection) ==========
 class DatabaseConnection:
     _instance = None
@@ -76,10 +91,16 @@ class DatabaseConnection:
         return cls._instance
 
     def _initialize(self):
-        self.conn = sqlite3.connect("game\src\database\database.sqlite")
+        # ---------- Get Path ----------
+        src_path = Path(__file__).resolve().parent
+        db_path = src_path / "database" / "database.sqlite"
+
+        # ---------- Connect ----------
+        self.conn = sqlite3.connect(db_path)
         self.conn.execute("PRAGMA journal_mode=WAL")
         self.conn.execute("PRAGMA foreign_keys = ON")
 
+        # ---------- Cursor ----------
         self.cursor = self.conn.cursor()
 
         print(f"Database connected")
@@ -150,15 +171,15 @@ class Config:
         # endregion -|1|-
 
         # region ----|1|---- Font
-        self.TITLE_FONT = pygame.font.Font(r"game\assets\fonts\Iglesia.ttf", 65)
+        self.TITLE_FONT = get_font('Iglesia.ttf', 65)
 
-        self.TEXT_FONT = pygame.font.Font(r"game\assets\fonts\Mirage final.ttf", 45)
+        self.TEXT_FONT = get_font('Mirage final.ttf', 45)
 
-        self.PIXEL_FONT = pygame.font.Font(r"game\assets\fonts\alagard.ttf", 45)
+        self.PIXEL_FONT = get_font('alagard.ttf', 45)
 
-        self.GAMENAME_FONT = pygame.font.Font(r"game\assets\fonts\RoyalInitialen.ttf", 140)
+        self.GAMENAME_FONT = get_font('RoyalInitialen.ttf', 140)
 
-        self.HIGHLIGHT_SIGN = pygame.font.Font(r"game\assets\fonts\BLKCHCRY.TTF", 50)
+        self.HIGHLIGHT_SIGN = get_font('BLKCHCRY.TTF', 50)
         # endregion -|1|-
 
         # region ----|1|---- Font Height
