@@ -34,9 +34,10 @@ class Room:
 
             # region ----|2|---- Damage fade
             if self.dmg_timer:
-                print("ok")
                 fade_time = 1.5
-                elapsed_time = time.time() - self.dmg_timer
+                if self.dmg_timer:  elapsed_time = time.time() - self.dmg_timer
+                else:               elapsed_time = False
+
                 if elapsed_time > fade_time:
                     screen.clear_surface(screen.second_surface)
                     screen.second_surface.set_alpha(255)
