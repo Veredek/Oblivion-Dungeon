@@ -3,9 +3,8 @@ import time
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state, player, Entity, Skill
+from src.classes import screen, game_state, hud, player, Entity, Skill
 from src.functions import functions
-from src.boxes import boxes
 
 # ====== Global Variables ======
 attack_text_rect_center = (config.MAINBOX_POS[0] + (1/5)*config.MAINBOX_SIZE[0],
@@ -51,7 +50,7 @@ class Room:
             enemy.blit()
 
             if my_turn:
-                mouse_over = boxes.fight_box(mouse_pos)
+                mouse_over = hud.fight_box(mouse_pos)
 
             # ----|1|---- Display Blit ----|1|----
             if game_state.ongame_state == "room": screen.blit_surfaces()

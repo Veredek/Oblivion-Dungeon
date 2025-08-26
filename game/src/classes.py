@@ -204,6 +204,333 @@ class GameState:
 
 game_state = GameState()
 
+# ~~~~~~~~~~ HUD ~~~~~~~~~~
+class Hud:
+    # ~~~~~~~~~~ Init ~~~~~~~~~~
+    def __init__(self):
+        self.time = time.time()
+        self.skip_text = False
+        self.waiting = False
+
+        # region ----|1|---- MainBox
+        self.main_x = config.MAINBOX_POS[0]
+        self.main_y = config.MAINBOX_POS[1]
+
+        self.main_w = config.MAINBOX_SIZE[0]
+        self.main_h = config.MAINBOX_SIZE[1]
+            # endregion
+
+        # region ----|1|---- MinorBox
+        self.minorbox_spacer = 0.5 * (config.game_height - self.main_y - self.main_h) # Spacer between minor boxes
+        self.minorbox_TITLE_HEIGHT = self.minorbox_spacer + 1.5 * config.TITLE_HEIGHT + config.PADDING
+        self.minorbox_w = (self.main_w - 2 * self.minorbox_spacer) // 3
+        self.minorbox_h = config.game_height - self.main_h - 4 * self.minorbox_spacer
+            # endregion
+
+        # region ----|1|---- Position
+        self.inventory_pos = (self.main_x,
+                              self.minorbox_spacer)
+
+        self.equips_pos = (self.main_x + self.minorbox_w + self.minorbox_spacer,
+                           self.minorbox_spacer)
+
+        self.stats_pos = (self.main_x + 2 * self.minorbox_w + 2 * self.minorbox_spacer,
+                          self.minorbox_spacer)
+            # endregion
+
+    # ~~~~~~~~~~ Functions ~~~~~~~~~~
+    def highlight(self, surface : pygame.Surface, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
+        """
+        Creates a gray text that turns white on mouse collide
+        """
+
+        mouse_pos = screen.mouse
+
+        if text_rect.collidepoint(mouse_pos):
+            highlighted_surface = font.render(text, True, "White")
+            surface.blit(highlighted_surface, text_rect)
+        else:
+            normal_surface = font.render(text, True, "Gray")
+            surface.blit(normal_surface, text_rect)
+
+    def highlight_button(self, mouse_pos : property, font : pygame.font.Font, text : str, text_rect : pygame.Rect):
+        '''
+        Blit a button on given surface
+        '''
+
+        surface = screen.base_surface
+
+        if text_rect.collidepoint(mouse_pos):
+            # ~~~~~~~~~~ Surfaces ~~~~~~~~~~
+            text_surface = font.render(text, True, "Yellow")
+            sign_surface = config.HIGHLIGHT_SIGN.render("+", True, "Yellow")
+
+            # ~~~~~~~~~~ Sizes ~~~~~~~~~~
+            text_size = text_surface.get_size()
+            sign_size = sign_surface.get_size()
+
+            spacer = 5
+
+            highlighted_surface_size = (text_size[0] + 2 * sign_size[0] + 2*spacer,
+                                        text_size[1])
+
+            # ~~~~~~~~~~ Blit ~~~~~~~~~~
+            highlighted_surface = pygame.Surface(highlighted_surface_size)
+            highlighted_surface.blit(sign_surface, (0, (text_size[1] - sign_size[1]) // 2))
+            highlighted_surface.blit(text_surface, (sign_size[0] + spacer, 0))
+            highlighted_surface.blit(sign_surface, (sign_size[0] + text_size[0] + 2*spacer, (text_size[1] - sign_size[1]) // 2))
+
+            surface.blit(highlighted_surface, (text_rect[0] - sign_size[0] - spacer, text_rect[1]))
+
+        else:
+            normal_surface = font.render(text, True, "White")
+            surface.blit(normal_surface, text_rect)
+
+    def glowing_text(self, text : str, font : pygame.font.Font, text_color : str, outline_color : str, outline_width : int):
+        # Renderizar o texto com a cor do contorno
+        outline_surface = font.render(text, True, outline_color)
+
+        # Criar uma superfície maior para acomodar o contorno
+        w, h = outline_surface.get_size()
+        surface = pygame.Surface((w + outline_width * 2, h + outline_width * 2), pygame.SRCALPHA)
+
+        # Desenhar o contorno ao redor do texto
+        for dx in range(-outline_width, outline_width + 1):
+            for dy in range(-outline_width, outline_width + 1):
+                if dx**2 + dy**2 <= outline_width**2:  # Forma circular
+                    surface.blit(outline_surface, (dx + outline_width, dy + outline_width))
+
+        # Renderizar o texto principal
+        text_surface = font.render(text, True, text_color)
+        surface.blit(text_surface, (outline_width, outline_width))
+
+        return surface
+
+    def text_on_base_surface(self, text: str, font : pygame.font.Font, color : str = "white", topleft = False, center = False, h_button = False):
+        text_surface = font.render(text, True, color)
+        mouse_pos = screen.mouse
+
+        if center:
+            text_rect = text_surface.get_rect(center=center)
+        elif topleft:
+            text_rect = text_surface.get_rect(topleft=topleft)
+
+        # if highlight button
+        if h_button:
+            self.highlight_button(mouse_pos, font, text, text_rect)
+        else:
+            screen.base_surface.blit(text_surface, text_rect)
+
+    def draw_mainbox(self):
+        pygame.draw.rect(screen.base_surface, (0, 0, 0), (self.main_x, self.main_y, self.main_w, self.main_h))
+        pygame.draw.rect(screen.base_surface, "White", (self.main_x, self.main_y, self.main_w, self.main_h), 3, 10)
+
+    def type_text(self, full_text, speed):
+        if self.skip_text:
+            return full_text
+        else:
+            elapsed_time = time.time() - self.time
+            chars_to_show = int(elapsed_time * speed)
+            return full_text[:chars_to_show]
+
+    def draw_text(self, script, surface=screen.base_surface, speed=config.TYPING_SPEED):
+        text = script.script()
+        font = config.TEXT_FONT
+        current_text = self.type_text(text,speed)
+        if current_text == text:
+            self.waiting = True
+        words = current_text.split(" ")
+        lines = []
+        current_line = ""
+
+        # Ajusta o texto
+        for word in words:
+            if font.size(current_line + word)[0] > (self.main_w - config.PADDING):
+                lines.append(current_line)
+                current_line = word + " "
+            else:
+                current_line += word + " "
+        if current_line:
+            lines.append(current_line)
+
+        # Clear Box
+        self.draw_mainbox()
+
+        # Renderiza o texto linha por linha
+        for i, line in enumerate(lines):
+            text_surface = font.render(line.strip(), True, "White")
+            surface.blit(text_surface, (self.main_x + config.PADDING, self.main_y + config.PADDING + i * config.TEXT_HEIGHT))
+
+    def after_box(self, mouse_pos):
+        # ------ Local Variables ------
+        font = config.TITLE_FONT
+
+        # ------ Clear Box ------
+        self.draw_mainbox()
+
+        # ------ Texts ------
+        proceed_text = font.render("Proceed", True, "White")
+        inventory_text = font.render("Inventory", True, "White")
+
+        # ------ Rectangles ------
+        proceed_text_rect = proceed_text.get_rect(center=(config.BASE_WIDTH * (1/3),
+                                                          self.main_y + self.main_h // 2))
+
+        inventory_text_rect = inventory_text.get_rect(center=(config.BASE_WIDTH * (2/3),
+                                                              self.main_y + self.main_h // 2))
+
+        # ------ Base Surface Blit ------
+        self.highlight_button(mouse_pos, font, "Proceed", proceed_text_rect)
+        self.highlight_button(mouse_pos, font, "Inventory", inventory_text_rect)
+
+        # ------ Click ------
+        if inventory_text_rect.collidepoint(mouse_pos): return "inventory"
+        elif proceed_text_rect.collidepoint(mouse_pos): return "proceed"
+
+    def inventory_box(self, surface):
+        pygame.draw.rect(surface, "White", (self.inventory_pos[0], self.inventory_pos[1], self.minorbox_w, self.minorbox_h), 3, 10)
+
+        inventory_text = config.TITLE_FONT.render("Inventory", True, "White")
+        inventory_text_rect = inventory_text.get_rect(center=(self.inventory_pos[0] + self.minorbox_w // 2, self.inventory_pos[1] + config.TITLE_FONT.size("Text Sample")[1]))
+        surface.blit(inventory_text, inventory_text_rect)
+        pygame.draw.line(surface, "White", (self.inventory_pos[0], self.minorbox_TITLE_HEIGHT), (self.inventory_pos[0] + self.minorbox_w - 3, self.minorbox_TITLE_HEIGHT), 3)
+
+    def equips_box(self, surface):
+        pygame.draw.rect(surface, "White", (self.equips_pos[0], self.equips_pos[1], self.minorbox_w, self.minorbox_h), 3, 10)
+        equips_text = config.TITLE_FONT.render("Equips", True, "White")
+        equips_text_rect = equips_text.get_rect(center=(self.equips_pos[0] + self.minorbox_w // 2, self.equips_pos[1] + config.TEXT_HEIGHT))
+        surface.blit(equips_text, equips_text_rect)
+        pygame.draw.line(surface, "White", (self.equips_pos[0], self.equips_pos[1] + 1.5 * config.TITLE_HEIGHT + config.PADDING), (self.equips_pos[0] + self.minorbox_w - 3, self.equips_pos[1] + 1.5 * config.TITLE_HEIGHT + config.PADDING), 3)
+
+    def stats_box(self, surface):
+        pygame.draw.rect(surface, "White", (self.stats_pos[0], self.stats_pos[1], self.minorbox_w, self.minorbox_h), 3, 10)
+        stats_text = config.TITLE_FONT.render("Stats", True, "White")
+        stats_text_rect = stats_text.get_rect(center=(self.stats_pos[0] + self.minorbox_w // 2, self.stats_pos[1] + config.TEXT_HEIGHT))
+        surface.blit(stats_text, stats_text_rect)
+        pygame.draw.line(surface, "White", (self.stats_pos[0], self.stats_pos[1] + 1.5 * config.TITLE_HEIGHT + config.PADDING), (self.stats_pos[0] + self.minorbox_w - 3, self.stats_pos[1] + 1.5 * config.TITLE_HEIGHT + config.PADDING), 3)
+
+    def fight_box(self, mouse_pos):
+        # ------ Local Variables ------
+        font = config.TITLE_FONT
+
+        # ------ Clear Box ------
+        self.draw_mainbox()
+
+        # ------ Texts ------
+        attack_text = font.render("Attack", True, 0)
+        skill_text = font.render("Skills", True, 0)
+        defend_text = font.render("Defend", True, 0)
+        escape_text = font.render("Escape", True, 0)
+
+        # ------ Rectangles ------
+        attack_text_rect = attack_text.get_rect(center=(config.MAINBOX_POS[0] + (1/5)*config.MAINBOX_SIZE[0], config.MAINBOX_POS[1] + (1/2)*config.MAINBOX_SIZE[1]))
+        skill_text_rect = skill_text.get_rect(center=(config.MAINBOX_POS[0] + (2/5)*config.MAINBOX_SIZE[0], config.MAINBOX_POS[1] + (1/2)*config.MAINBOX_SIZE[1]))
+        defend_text_rect = defend_text.get_rect(center=(config.MAINBOX_POS[0] + (3/5)*config.MAINBOX_SIZE[0], config.MAINBOX_POS[1] + (1/2)*config.MAINBOX_SIZE[1]))
+        escape_text_rect = escape_text.get_rect(center=(config.MAINBOX_POS[0] + (4/5)*config.MAINBOX_SIZE[0], config.MAINBOX_POS[1] + (1/2)*config.MAINBOX_SIZE[1]))
+
+        # ------ Base Surface Blit ------
+        self.highlight_button(mouse_pos, font, "Attack", attack_text_rect)
+        self.highlight_button(mouse_pos, font, "Skills", skill_text_rect)
+        self.highlight_button(mouse_pos, font, "Defend", defend_text_rect)
+        self.highlight_button(mouse_pos, font, "Escape", escape_text_rect)
+
+        # ------ Mouse Over ------
+        if attack_text_rect.collidepoint(mouse_pos): return "attack"
+        elif skill_text_rect.collidepoint(mouse_pos): return "skill"
+        elif defend_text_rect.collidepoint(mouse_pos): return "defend"
+        elif escape_text_rect.collidepoint(mouse_pos): return "escape"
+
+    def esc_menu(self):
+        clock = pygame.time.Clock()
+
+        inside = True
+        while inside:
+            screen.clear_surfaces()
+            mouse_pos = screen.mouse
+
+            # region ----|1|---- Font Surfaces
+            continue_text = config.TITLE_FONT.render("Continue", True, "White")
+            quit_text = config.TITLE_FONT.render("Quit", True, "White")
+            # endregion -|1|-
+
+            # region ----|1|---- Rectangles
+            continue_text_rect = continue_text.get_rect(center=(config.game_width / 2, config.game_height / 2 - 80))
+            quit_text_rect = quit_text.get_rect(center=(config.game_width / 2, config.game_height / 2 + 40))
+            # endregion -|1|-
+
+            # region ----|1|---- Blit Button on base_surface
+            self.highlight_button(mouse_pos, config.TITLE_FONT, "Continue", continue_text_rect)
+            self.highlight_button(mouse_pos, config.TITLE_FONT, "Quit", quit_text_rect)
+            # endregion -|1|-
+
+            # region ----|1|---- Display Blit
+            screen.blit_surface(screen.base_surface)
+            # endregion -|1|-
+
+            # region ----|1|---- Event Handle
+
+            for event in pygame.event.get():
+                # region ----|2|---- Quit
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
+                # endregion -|2|-
+
+                # region ----|2|---- Videorisize
+                elif event.type == pygame.VIDEORESIZE:
+                    if event.size != screen.display_size:
+                        if screen.fullscreen == False:
+                            print("*Video Resize*"
+                                    f"    Event Size:{event.size}," +
+                                    f"    Display Size:{screen.display_size}\n")
+                            screen.resize(event)
+                # endregion -|2|-
+
+                # region ----|2|---- Keydown
+                elif event.type == pygame.KEYDOWN:
+                    print("*Keydown*")
+                    if event.key == pygame.K_F11:
+                        print("    F11\n")
+                        screen.toggle_fullscreen()
+
+                    elif event.key == pygame.K_ESCAPE:
+                        print("    Esc")
+                        inside = False
+                # endregion -|2|-
+
+                # region ----|2|---- Mouse Button
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+
+                    # region ----|3|---- Left Click
+                    if event.button == 1:
+
+                        # region ----|4|---- CONTINUE
+                        if continue_text_rect.collidepoint(mouse_pos):
+                            print("-> Continue <-\n")
+                            inside = False
+                        # endregion -|4|-
+
+                        # region ----|4|---- QUIT
+                        elif quit_text_rect.collidepoint(mouse_pos):
+                            print("-> Quit <-\n")
+                            game_state.state = "MENU"
+                            game_state.ongame_state = "menu"
+                            inside = False
+                        # endregion -|4|-
+
+                    # endregion -|3|-
+
+                # endregion -|2|-
+
+            # endregion -|1|-
+
+            # Tick FPS
+            clock.tick(60)
+
+        return None
+
+hud = Hud()
+
 # ~~~~~~~~~~ Entities ~~~~~~~~~~
 class Entity:
     # ~~~~~~~~~~ Class Config ~~~~~~~~~~
@@ -552,7 +879,7 @@ class Skill:
             # endregion -|1|-
 
             # region ----|1|---- Window Blit
-            boxes.draw_mainbox()
+            hud.draw_mainbox()
 
             enemy_display_rect = enemy_display.get_rect(center=config.ENEMY_CENTER)
             screen.base_surface.blit(enemy_display, enemy_display_rect)

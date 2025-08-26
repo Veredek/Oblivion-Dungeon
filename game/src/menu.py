@@ -2,7 +2,7 @@ import pygame
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state, player
+from src.classes import screen, game_state, hud, player
 from src.functions import functions
 
 # ========== Local Variables ==========
@@ -79,13 +79,13 @@ def menu():
         if game_state.ongame_state == "menu":
 
             # ----|2|---- Blit Text on Base Surface ----|2|----
-            functions.text_on_base_surface(config.GAME_TITLE, config.GAMENAME_FONT,
+            hud.text_on_base_surface(config.GAME_TITLE, config.GAMENAME_FONT,
                                            center=local.gametitle_rect.center)
-            functions.text_on_base_surface("New Game", config.TITLE_FONT, h_button=True,
+            hud.text_on_base_surface("New Game", config.TITLE_FONT, h_button=True,
                                            center=local.newgame_rect.center)
-            functions.text_on_base_surface("Load", config.TITLE_FONT, h_button=True,
+            hud.text_on_base_surface("Load", config.TITLE_FONT, h_button=True,
                                            center=local.load_rect.center)
-            functions.text_on_base_surface("Exit", config.TITLE_FONT, h_button=True,
+            hud.text_on_base_surface("Exit", config.TITLE_FONT, h_button=True,
                                            center=local.exit_rect.center)
             
         # ----|1|---- Your Name Screen ----|1|----
@@ -94,13 +94,13 @@ def menu():
             pygame.draw.rect(screen.base_surface, "White", (local.namebox_pos[0], local.namebox_pos[1], local.namebox_size[0], local.namebox_size[1]), 3, 10)
 
             # ----|2|---- Blit Text on Base Surface ----|2|----
-            functions.text_on_base_surface("Your Name", local.your_name_font,
+            hud.text_on_base_surface("Your Name", local.your_name_font,
                                            center=local.yourname_rect.center)
-            functions.text_on_base_surface("Enter", config.TITLE_FONT, h_button=True,
+            hud.text_on_base_surface("Enter", config.TITLE_FONT, h_button=True,
                                            center=local.enter_rect.center)
-            functions.text_on_base_surface("Back", config.TITLE_FONT, h_button=True,
+            hud.text_on_base_surface("Back", config.TITLE_FONT, h_button=True,
                                            center=local.back_rect.center)
-            functions.text_on_base_surface(player.name, local.your_name_font,
+            hud.text_on_base_surface(player.name, local.your_name_font,
                                            center=local.name_rect.center)
 
         # ----|1|---- Display Blit ----|1|----

@@ -3,10 +3,9 @@ import time
 
 # ========== Tree ==========
 from src.config import config
-from src.classes import screen, game_state, player
+from src.classes import screen, game_state, player, hud
 from src.functions import functions
 
-from src.boxes import boxes
 from src.inventory import inventory
 from src.room import Room
 from assets.dialogues.script import Script
@@ -47,12 +46,12 @@ def new_game():
                 inventory.inventory(player)
             else:
                 game_state.ongame_state = "after"
-                after_mouse_over = boxes.after_box(mouse_pos)
-                
+                after_mouse_over = hud.after_box(mouse_pos)
+
         # ------ Text ------
         else:
             game_state.ongame_state = "text"
-            boxes.draw_text(script)
+            hud.draw_text(script)
 
         # ~~~~~~~~~~ Window Blit ~~~~~~~~~~
         if game_state.state == "NEW GAME" : screen.blit_surface(screen.base_surface)
@@ -75,22 +74,22 @@ def new_game():
                     # endregion
 
                 # endregion
-            
+
             # ------ Keydown ------
             elif event.type == pygame.KEYDOWN:
                 print("*Keydown*")
                 if event.key == pygame.K_RETURN:
                     print("    RETURN\n")
-                    boxes.skip_text = True
+                    hud.skip_text = True
                 elif event.key == pygame.K_x:
                     print("    X\n")
-                    if boxes.waiting:
+                    if hud.waiting:
                         script.state += 1
-                        boxes.waiting = False
-                        boxes.skip_text = False
-                        boxes.time = time.time()
+                        hud.waiting = False
+                        hud.skip_text = False
+                        hud.time = time.time()
                     elif game_state.ongame_state == "text":
-                        boxes.skip_text = True
+                        hud.skip_text = True
                 else:
                     print("\n")
             # endregion
