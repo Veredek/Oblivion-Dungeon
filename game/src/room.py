@@ -4,7 +4,7 @@ import time
 # ========== Tree ==========
 from src.config import config
 from src.classes import screen, game_state, hud, player, Entity, Skill
-from src.functions import functions
+from src.functions import basic_events
 
 # ====== Global Variables ======
 attack_text_rect_center = (config.MAINBOX_POS[0] + (1/5)*config.MAINBOX_SIZE[0],
@@ -57,7 +57,7 @@ class Room:
 
             # ----|1|---- Event Handle ----|1|----
             for event in pygame.event.get():
-                functions.basic_events(event)
+                basic_events(event)
 
                 # ----|2|---- Mouse ----|2|----
                 if event.type == pygame.MOUSEBUTTONDOWN:

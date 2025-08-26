@@ -836,34 +836,31 @@ class Skill:
         return f"[id:{self.id}] Skill ({self.name}):\n" + f"{self.text}"
 
     # ---------- Blit Damage on Enemy ----------
-    def blit_damage(self, damage: int, elapsed: float):
-        font = config.PIXEL_FONT
-        surface = screen.second_surface
+    def blit_damage(self, enemy: Entity, damage: int, elapsed: float = 5):
 
-        damage_surface = font.render(f"{damage}", True, (255,0,0,0))
-        damage_rect = damage_surface.get_rect(center=(config.BASE_WIDTH/2,
-                                                        config.BASE_HEIGHT/5 - elapsed*100
-        ))
-
-        surface.blit(damage_surface, damage_rect)
-        return None
-
-    # ---------- Hurt Animation ----------
-    def flash_enemy(self, enemy : Entity, damage: int):
-        from src.boxes import boxes
-
-        clock = pygame.time.Clock()
+        dmg_font = config.PIXEL_FONT
+        clock    = pygame.time.Clock()
+        timer    = time.time()
+        flashing = True
 
         # region ----|1|---- Making a White copy of the Enemy Image
-        image = enemy.image()
-        flashed = image.copy()
-        overlay = pygame.Surface(image.get_size(), pygame.SRCALPHA)
+        enemy_image = enemy.image()
+        enemy_flashed = enemy_image.copy()
+        overlay = pygame.Surface(enemy_image.get_size(), pygame.SRCALPHA)
         overlay.fill((255, 255, 255, 0))
-        flashed.blit(overlay, (0,0), special_flags=pygame.BLEND_RGBA_ADD)
+        enemy_flashed.blit(overlay, (0,0), special_flags=pygame.BLEND_RGBA_ADD)
         # endregion -|1|-
 
-        flashing = True
-        timer = time.time()
+        # region ----|1|---- Damage Surface
+        if damage > 0:  damage_surface = dmg_font.render(f"{damage}", True, 'red')
+        if damage == 0: damage_surface = dmg_font.render(f"{damage}", True, 'white')
+        if damage < 0:  damage_surface = dmg_font.render(f"{damage}", True, 'green')
+        # endregion -|1|-
+
+        # region ----|1|---- Enemy Rectangle
+        enemy_display_rect = enemy_image.get_rect(center=config.ENEMY_CENTER)
+        # endregion -|1|-
+
         while flashing:
             # Clear Surfaces
             screen.clear_surfaces()
@@ -873,17 +870,22 @@ class Skill:
 
             # region ----|1|---- Flash Frames
             if int(elapsed * 20) % 2 == 0:
-                enemy_display = flashed
+                enemy_display = enemy_flashed
             else:
-                enemy_display = image
+                enemy_display = enemy_image
+            # endregion -|1|-
+
+            # region ----|1|---- Damage Rectangle
+            damage_rect = damage_surface.get_rect(center=(config.BASE_WIDTH/2,
+                                                          config.BASE_HEIGHT/5 - elapsed*100))
             # endregion -|1|-
 
             # region ----|1|---- Window Blit
             hud.draw_mainbox()
 
-            enemy_display_rect = enemy_display.get_rect(center=config.ENEMY_CENTER)
             screen.base_surface.blit(enemy_display, enemy_display_rect)
-            self.blit_damage(damage, elapsed)
+            screen.second_surface.blit(damage_surface, damage_rect)
+
             screen.blit_surfaces()
             # endregion -|1|-
 
@@ -1058,6 +1060,10 @@ class Skill:
                     print(f"heal: {value}, target hp: {target.hp}/{target.max_hp}", end=" -> ")
                     target.hp += value
                     print(f"{target.hp}/{target.max_hp}")
+                # endregion -|2|-
+
+                # region ----|2|---- Damage Blit on Surface
+                if target != player:  self.blit_damage(target, value)
                 # endregion -|2|-
 
             # endregion -|1|-

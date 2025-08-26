@@ -3,7 +3,7 @@ import pygame
 # ========== Tree ==========
 from src.config import config
 from src.classes import screen, game_state, hud, player
-from src.functions import functions
+from src.functions import basic_events
 from src.equipaments import EQUIPAMENTS
 
 # ========== Functions ==========
@@ -95,7 +95,7 @@ class Inventory:
 
                 numbers_text = self.HPMPXP_FONT.render(f"{player.stats["hp"]}/{player.stats["HP"]}", True, "White")
                 numbers_text_rect= numbers_text.get_rect(center=(hud.stats_pos[0] + hud.minorbox_w/2, hud.minorbox_TITLE_HEIGHT + config.PADDING + hp_height/2 - 4))
-                surface.blit(functions.glowing_text(f"{player.stats["hp"]}/{player.stats["HP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                surface.blit(hud.glowing_text(f"{player.stats["hp"]}/{player.stats["HP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
                 
             # endregion
 
@@ -113,7 +113,7 @@ class Inventory:
 
                 numbers_text = self.HPMPXP_FONT.render(f"{player.stats["mp"]}/{player.stats["MP"]}", True, "White")
                 numbers_text_rect= numbers_text.get_rect(center=(hud.stats_pos[0] + hud.minorbox_w/2, hud.minorbox_TITLE_HEIGHT + config.PADDING + mp_height*3/2 - 4))
-                surface.blit(functions.glowing_text(f"{player.stats["mp"]}/{player.stats["MP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                surface.blit(hud.glowing_text(f"{player.stats["mp"]}/{player.stats["MP"]}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
             
             # endregion
 
@@ -133,7 +133,7 @@ class Inventory:
 
                 numbers_text = self.HPMPXP_FONT.render(f"{player.exp}/{player.next_level_exp}", True, "White")
                 numbers_text_rect= numbers_text.get_rect(center=(hud.stats_pos[0] + hud.minorbox_w/2, hud.minorbox_TITLE_HEIGHT + config.PADDING + exp_height*5/2 - 4))
-                surface.blit(functions.glowing_text(f"{player.exp}/{player.next_level_exp}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
+                surface.blit(hud.glowing_text(f"{player.exp}/{player.next_level_exp}", self.HPMPXP_FONT, "White", "Black", 2), numbers_text_rect)
             
             # endregion
 
@@ -165,7 +165,7 @@ class Inventory:
             # PLUS SIGN
             plus_rect = self.PLUS_TEXT.get_rect(midleft=(self.ATTRIBUTES_POS[0] + self.ATTRIBUTES_SIZE[0] + 5, self.ATTRIBUTES_POS[1] + self.PLUS_TEXT.get_height() + i*self.ATTRIBUTES_TEXT_HEIGHT))
             pygame.draw.rect(surface, "white" if plus_rect.collidepoint(mouse_pos) else "darkgray", plus_rect, 2)
-            functions.highlight(surface, self.PLUS_FONT, " + ", plus_rect)
+            hud.highlight(surface, self.PLUS_FONT, " + ", plus_rect)
 
             # INTERNAL LINES BLIT
             pygame.draw.line(surface, "white", (self.ATTRIBUTES_POS[0] + self.ATTRIBUTES_TEXT_MAXWIDTH, self.ATTRIBUTES_POS[1]), (self.ATTRIBUTES_POS[0] + self.ATTRIBUTES_TEXT_MAXWIDTH, self.ATTRIBUTES_POS[1] + self.ATTRIBUTES_SIZE[1] -1), 2)
@@ -236,13 +236,13 @@ class Inventory:
             hud.equips_box(screen.base_surface)
             hud.stats_box(screen.base_surface)
             hud.draw_mainbox()
-            functions.highlight(screen.base_surface, config.TITLE_FONT, "Back", self.BACK_TEXT_RECT)
+            hud.highlight(screen.base_surface, config.TITLE_FONT, "Back", self.BACK_TEXT_RECT)
 
             # ------ Inventory Items List ------
             for item_pos in range(len(player.inventory)):
                 item_text = config.TEXT_FONT.render(player.inventory[item_pos], True, 0)
                 item_text_rect = item_text.get_rect(topleft=(config.MAINBOX_POS[0] + config.PADDING, hud.minorbox_TITLE_HEIGHT + config.PADDING + (item_pos * config.TITLE_HEIGHT)))
-                functions.highlight(screen.base_surface, config.TEXT_FONT, player.inventory[item_pos], item_text_rect)
+                hud.highlight(screen.base_surface, config.TEXT_FONT, player.inventory[item_pos], item_text_rect)
             
             # ------ Stats ------
             self.bars(screen.base_surface)
@@ -256,7 +256,7 @@ class Inventory:
             # ------ Detectando Eventos ------
             for event in pygame.event.get():
                 # ------ Check Basic Events ------
-                functions.basic_events(event)
+                basic_events(event)
 
                 if event.type == pygame.MOUSEBUTTONDOWN:
                 # ------ Quit Inventory ------

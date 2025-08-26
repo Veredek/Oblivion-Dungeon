@@ -4,7 +4,7 @@ import time
 # ========== Tree ==========
 from src.config import config
 from src.classes import screen, game_state, player, hud
-from src.functions import functions
+from src.functions import basic_events
 
 from src.inventory import inventory
 from src.room import Room
@@ -59,7 +59,7 @@ def new_game():
 
         # region ----|1|---- Event Handle
         for event in pygame.event.get():
-            functions.basic_events(event)
+            basic_events(event)
 
             # region ----|2|---- MOUSEBUTTOMDOWN
             if event.type == pygame.MOUSEBUTTONDOWN:

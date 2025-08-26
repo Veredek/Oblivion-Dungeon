@@ -3,7 +3,7 @@ import pygame
 # ========== Tree ==========
 from src.config import config
 from src.classes import screen, game_state, hud, player
-from src.functions import functions
+from src.functions import basic_events
 
 # ========== Local Variables ==========
 class Local:
@@ -108,7 +108,7 @@ def menu():
 
         # ----|1|---- Detecting Events ----|1|----
         for event in pygame.event.get():
-            functions.basic_events(event)
+            basic_events(event)
 
             # ----|2|---- Mouse Button ----|2|----
             if event.type == pygame.MOUSEBUTTONDOWN:
