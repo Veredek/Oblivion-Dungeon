@@ -1,5 +1,6 @@
 import pygame
 import math
+import random
 import sqlite3
 import time
 
@@ -899,7 +900,61 @@ class Skill:
         return None
 
     # ---------- Miss Animation ----------
-    def miss(self):
+    def miss(self, target: Entity):
+        from src.functions import load_image
+
+        # region ----|1|---- Constants
+        miss_font = config.PIXEL_FONT
+        clock     = pygame.time.Clock()
+        timer     = time.time()
+        missing   = True
+        direction = random.choice(['left', 'right'])
+
+        miss_surface = miss_font.render('miss', True, 'white')
+        miss_rect = miss_surface.get_rect(center=config.ENEMY_CENTER)
+        target_surface = target.image()
+        target_rect    = target_surface.get_rect(center=config.ENEMY_CENTER)
+        # endregion -|1|-
+
+        # region ----|1|---- Movement Variables
+        stop_time    = 1
+        max_distance = 200 # in pixels
+        distance     = lambda elapsed: max_distance * math.sin(math.pi * elapsed / stop_time)
+        # endregion -|1|-
+
+        if   direction == 'left':   enemy_center_x = lambda elapsed: config.ENEMY_CENTER[0] - distance(elapsed)
+        elif direction == 'right':  enemy_center_x = lambda elapsed: config.ENEMY_CENTER[0] + distance(elapsed)
+
+        while missing:
+            # Clear Surfaces
+            screen.clear_surfaces()
+
+            # Elapsed Time
+            elapsed = time.time() - timer
+
+            # Enemy Move
+            if target != player:
+                target_rect = target_surface.get_rect(center=(enemy_center_x(elapsed),
+                                                              config.ENEMY_CENTER[1]))
+
+            # Load HUD
+            hud.draw_mainbox()
+
+            # region ----|1|---- Window Blit
+            screen.base_surface.blit(target_surface, target_rect)
+            screen.second_surface.blit(miss_surface, miss_rect)
+
+            screen.blit_surfaces()
+            # endregion -|1|-
+
+            # region ----|1|---- Stop
+            if elapsed > stop_time:
+                missing = False
+            # endregion -|1|-
+
+            # Tick FPS
+            clock.tick(60)
+
         return None
 
     # ---------- Avoid Animation ----------
@@ -993,7 +1048,10 @@ class Skill:
             # region ----|1|---- Hit/Miss/Avoid Check
 
             # region ----|2|---- Hit/Miss
-            if skill_accuracy != None:
+            if skill_accuracy == None:
+                print(f"skill accuracy: (auto hit)")
+
+            else:
                 hit_percent = int((skill_accuracy * caster.accuracy) * 100)
                 hit = random.randint(1,100)
 
@@ -1002,7 +1060,7 @@ class Skill:
 
                 if hit > hit_percent:
                     print("(miss!)")
-                    self.miss()
+                    self.miss(target)
                     continue
             # endregion -|2|-
 
