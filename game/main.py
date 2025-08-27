@@ -7,7 +7,6 @@ time.sleep(0.1)
 # ========= Tree & Init =========
 from src.config import config
 from src.classes import screen, game_state
-from src.functions import functions
 from src.menu import menu
 from src.new_game import new_game
 
