@@ -1,19 +1,22 @@
 ====== modified ======
-turn #endregion into #endregion |n|
 
 ====== working ======
+create condition class
 
 ====== to modify ======
-insert entity init conditions
-miss and avoid animation
-create condition class
 skill condition handle on activate
+add crit on skills
+insert entity init conditions
 entity image def to property
 surface not cleaning on continue in menu during fight
 database items
+highlight text to be fade or left to right instead of just 1/0
 
 ====== latest modications ======
-database restructured
-Entity class: added properties (exp, level and stat)
-Skill class: activate added
-functions.py: removed skill functions
+(28/08) fix: miss and avoid
+(26/08) fix: functions and related
+(26/08) fix: damage fade
+(26/08) refactor: functions not a class anymore
+(26/08) refactor: boxes changed to hud, and moved to classes.py
+(26/08) refactor: paths with pathlib
+(12/08) refactor: database as a instance of a class
