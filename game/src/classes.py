@@ -901,31 +901,74 @@ class Skill:
 
     # ---------- Miss Animation ----------
     def miss(self, target: Entity):
-        from src.functions import load_image
-
         # region ----|1|---- Constants
         miss_font = config.PIXEL_FONT
         clock     = pygame.time.Clock()
         timer     = time.time()
+        anim_time = 1 # time of animation
         missing   = True
-        direction = random.choice(['left', 'right'])
 
-        miss_surface = miss_font.render('miss', True, 'white')
-        miss_rect = miss_surface.get_rect(center=config.ENEMY_CENTER)
+        miss_surface   = miss_font.render('miss', True, 'white')
+        miss_rect      = miss_surface.get_rect(center=config.ENEMY_CENTER)
+        target_surface = target.image()
+        target_rect    = target_surface.get_rect(center=config.ENEMY_CENTER)
+        # endregion -|1|-
+
+        while missing:
+            # Clear Surfaces
+            screen.clear_surfaces()
+
+            # Elapsed Time
+            elapsed = time.time() - timer
+
+            # Load HUD
+            hud.draw_mainbox()
+
+            # region ----|1|---- Window Blit
+            screen.base_surface.blit(target_surface, target_rect)
+            screen.second_surface.blit(miss_surface, miss_rect)
+
+            screen.blit_surfaces()
+            # endregion -|1|-
+
+            # region ----|1|---- Stop
+            if elapsed > anim_time:
+                missing = False
+            # endregion -|1|-
+
+            # Tick FPS
+            clock.tick(60)
+
+        return None
+
+    # ---------- Avoid Animation ----------
+    def avoid(self, target: Entity):
+        from src.functions import clamp
+
+        # region ----|1|---- Constants
+        avoid_font = config.PIXEL_FONT
+        clock      = pygame.time.Clock()
+        timer      = time.time()
+        anim_time  = 1 # time of animation
+        avoiding   = True
+        direction  = random.choice(['left', 'right'])
+
+        avoid_surface  = avoid_font.render('avoid', True, 'white')
+        avoid_rect     = avoid_surface.get_rect(center=config.ENEMY_CENTER)
         target_surface = target.image()
         target_rect    = target_surface.get_rect(center=config.ENEMY_CENTER)
         # endregion -|1|-
 
         # region ----|1|---- Movement Variables
-        stop_time    = 1
         max_distance = 200 # in pixels
-        distance     = lambda elapsed: max_distance * math.sin(math.pi * elapsed / stop_time)
+        acceleration = clamp(1 + target.avoid, 1, 2)
+        distance     = lambda elapsed: clamp((acceleration * max_distance * math.sin(math.pi * elapsed / anim_time)), 0, max_distance)
         # endregion -|1|-
 
         if   direction == 'left':   enemy_center_x = lambda elapsed: config.ENEMY_CENTER[0] - distance(elapsed)
         elif direction == 'right':  enemy_center_x = lambda elapsed: config.ENEMY_CENTER[0] + distance(elapsed)
 
-        while missing:
+        while avoiding:
             # Clear Surfaces
             screen.clear_surfaces()
 
@@ -942,23 +985,19 @@ class Skill:
 
             # region ----|1|---- Window Blit
             screen.base_surface.blit(target_surface, target_rect)
-            screen.second_surface.blit(miss_surface, miss_rect)
+            screen.second_surface.blit(avoid_surface, avoid_rect)
 
             screen.blit_surfaces()
             # endregion -|1|-
 
             # region ----|1|---- Stop
-            if elapsed > stop_time:
-                missing = False
+            if elapsed > anim_time:
+                avoiding = False
             # endregion -|1|-
 
             # Tick FPS
             clock.tick(60)
 
-        return None
-
-    # ---------- Avoid Animation ----------
-    def avoid(self):
         return None
 
     # ---------- Activate Skill ----------
@@ -1075,7 +1114,7 @@ class Skill:
 
                 if hit < avoid_chance_percent:
                     print("(avoid!)")
-                    self.avoid()
+                    self.avoid(target)
                     continue
                 else:  print("(hit!)")
             # endregion -|2|-

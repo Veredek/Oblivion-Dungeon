@@ -60,3 +60,7 @@ def timefn(fn):
         return result
 
     return measure_time
+
+# ~~~~~~~~~~ Clamp ~~~~~~~~~~
+def clamp(x, min_y, max_y):
+    return max(min(x,max_y), min_y)
