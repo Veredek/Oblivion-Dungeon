@@ -11,6 +11,7 @@ entity image def to property
 surface not cleaning on continue in menu during fight
 database items
 highlight text to be fade or left to right instead of just 1/0
+create elemental resistance for certain condition skill instance
 
 ====== latest modications ======
 (28/08) fix: miss and avoid
