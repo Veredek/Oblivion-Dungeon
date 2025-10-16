@@ -1000,6 +1000,48 @@ class Skill:
 
         return None
 
+    # ---------- Rsist Animation ----------
+    def resist(self, target: Entity):
+        # region ----|1|---- Constants
+        resist_font = config.PIXEL_FONT
+        clock       = pygame.time.Clock()
+        timer       = time.time()
+        anim_time   = 1 # time of animation
+        resisting   = True
+
+        resist_surface   = resist_font.render('resist', True, 'white')
+        resist_rect      = resist_surface.get_rect(center=config.ENEMY_CENTER)
+        target_surface   = target.image()
+        target_rect      = target_surface.get_rect(center=config.ENEMY_CENTER)
+        # endregion -|1|-
+
+        while resisting:
+            # Clear Surfaces
+            screen.clear_surfaces()
+
+            # Elapsed Time
+            elapsed = time.time() - timer
+
+            # Load HUD
+            hud.draw_mainbox()
+
+            # region ----|1|---- Window Blit
+            screen.base_surface.blit(target_surface, target_rect)
+            screen.second_surface.blit(resist_surface, resist_rect)
+
+            screen.blit_surfaces()
+            # endregion -|1|-
+
+            # region ----|1|---- Stop
+            if elapsed > anim_time:
+                resisting = False
+            # endregion -|1|-
+
+            # Tick FPS
+            clock.tick(60)
+
+        return None
+
     # ---------- Activate Skill ----------
     def activate(self, caster: Entity, target: Entity):
         import random
@@ -1014,6 +1056,14 @@ class Skill:
         for instance in range(instances):
 
             # ~~~~~~~~~~ Instance Values ~~~~~~~~~~
+            # region
+
+            # region ----|1|---- Check if it's damage, heal or condition
+            ### 1: damage, 0: heal, None: condition ###
+
+            db.execute("SELECT is_damage FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            is_damage = db.cursor.fetchone()[0]
+            # endregion -|1|-
 
             # region ----|1|---- Type
             ''' Skill Damage Type'''
@@ -1022,7 +1072,8 @@ class Skill:
             type_id = db.cursor.fetchone()[0]
 
             db.execute("SELECT type FROM skill_types WHERE id=?", (type_id,))
-            skill_type = db.cursor.fetchone()[0]
+            try:    skill_type = db.cursor.fetchone()[0]
+            except: skill_type = None
             # endregion -|1|-
 
             # region ----|1|---- Element
@@ -1039,27 +1090,20 @@ class Skill:
             source_id = db.cursor.fetchone()[0]
 
             db.execute("SELECT source FROM skill_source WHERE id=?", (source_id,))
-            source = db.cursor.fetchone()[0]
-            # endregion -|1|-
-
-            # region ----|1|---- Check if it's damage, heal or condition
-            ### 1: damage, 0: heal, None: condition ###
-
-            db.execute("SELECT is_damage FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-            is_damage = db.cursor.fetchone()[0]
+            try:    source = db.cursor.fetchone()[0]
+            except: source = None
             # endregion -|1|-
 
             # region ----|1|---- Base Value
             if is_damage != None:
                 db.execute("SELECT base_value FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
                 base_value = db.cursor.fetchone()[0]
-
             # endregion -|1|-
 
             # region ----|1|---- Scale
-            if is_damage != None:
-                db.execute("SELECT scale FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
-                scale = db.cursor.fetchone()[0]
+            db.execute("SELECT scale FROM skill_instances WHERE sequencer=? AND skill_id=?", (instance, self.id))
+            try:    scale = db.cursor.fetchone()[0]
+            except: scale = None
             # endregion -|1|-
 
             # region ----|1|---- Condition
@@ -1082,8 +1126,12 @@ class Skill:
             skill_accuracy = db.cursor.fetchone()[0]
             # endregion -|1|-
 
+            # endregion
+
             # ~~~~~~~~~~ Apply ~~~~~~~~~~
+            # region
             print(f"instance: {instance + 1}/{instances}")
+
             # region ----|1|---- Hit/Miss/Avoid Check
 
             # region ----|2|---- Hit/Miss
@@ -1165,7 +1213,28 @@ class Skill:
             # endregion -|1|-
 
             # region ----|1|---- Condition Handle
+            if is_damage == None:
+                assert hasattr(target, 'resistance')
+
+                # region ----|2|---- Miss Handle
+                accuracy_percent = 100*skill_accuracy
+                hit = random.randint(1, 100)
+                if hit > accuracy_percent:
+                    self.miss(target)
+                    continue
+                # endregion -|2|-
+
+                # region ----|2|---- Resist Handle
+                if target.id != caster.id:
+                    resist_chance_percent = target.resistance
+                    hit = random.randint(1, 100)
+                    if hit > resist_chance_percent:  target.gain_condition(condition, con_stacks)
+                    else:                            self.resist(target)
+                # endregion -|2|-
+
             # endregion -|1|-
+
+            # endregion
 
 # ~~~~~~~~~~ Conditions ~~~~~~~~~~
 class Condition:

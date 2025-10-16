@@ -1,6 +1,8 @@
 ====== modified ======
 
 ====== working ======
+refactoring database
+refactoring Entity class
 create condition class
 
 ====== to modify ======
